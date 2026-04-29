@@ -1,0 +1,333 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  height: auto;
+}
+
+/* Keeps fixed negative-z backdrops behind routed UI inside #root */
+#root {
+  position: relative;
+  isolation: isolate;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  font-family: theme("fontFamily.sans");
+}
+
+body {
+  background-color: theme("colors.void");
+  color: theme("colors.ink.primary");
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+@layer base {
+  button,
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: theme("fontFamily.mono");
+  }
+}
+
+/* Full-bleed aurora — covers the *entire* viewport including overscroll. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -10vh -10vw;
+  z-index: -2;
+  opacity: 0.72;
+  background:
+    radial-gradient(ellipse 70% 50% at 12% 8%, rgba(124, 92, 255, 0.35), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 88% 18%, rgba(255, 137, 184, 0.16), transparent 60%),
+    radial-gradient(ellipse 80% 60% at 50% 105%, rgba(125, 197, 255, 0.2), transparent 65%),
+    linear-gradient(180deg, #05030f 0%, #0c0824 45%, #0a0620 100%);
+  animation: drift 42s ease-in-out infinite;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 3px 3px;
+  opacity: 0.4;
+  mix-blend-mode: screen;
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(2%, -1%, 0) scale(1.04);
+  }
+  66% {
+    transform: translate3d(-2%, 2%, 0) scale(0.98);
+  }
+}
+
+/* Stronger ambient wash on chakra meditation routes (pairs with AuroraBackdrop boost). */
+html[data-chakra-route] body::before {
+  opacity: 0.52;
+  animation-duration: 30s;
+  filter: saturate(1.08);
+}
+
+/* Chakra practice fog — orbit arm rotates + pushes radius; counter rotates opposite so sparks stay upright */
+@keyframes chakraFogOrbitArm {
+  from {
+    transform: rotate(0deg) translateX(var(--orbit-r));
+  }
+  to {
+    transform: rotate(360deg) translateX(var(--orbit-r));
+  }
+}
+
+@keyframes chakraFogOrbitCounter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes chakraFogBreathA {
+  0%,
+  100% {
+    transform: scale3d(0.86, 1.14, 1);
+  }
+  32% {
+    transform: scale3d(1.1, 0.88, 1);
+  }
+  64% {
+    transform: scale3d(0.92, 1.07, 1);
+  }
+}
+
+@keyframes chakraFogBreathB {
+  0%,
+  100% {
+    transform: scale3d(1.09, 0.87, 1);
+  }
+  38% {
+    transform: scale3d(0.87, 1.11, 1);
+  }
+}
+
+@keyframes chakraFogBreathC {
+  0%,
+  100% {
+    transform: scale3d(1.06, 1.06, 1);
+  }
+  50% {
+    transform: scale3d(0.84, 0.91, 1);
+  }
+}
+
+@keyframes chakraFogBreathD {
+  0%,
+  100% {
+    transform: scale3d(0.91, 1.09, 1) rotate(-6deg);
+  }
+  34% {
+    transform: scale3d(1.11, 0.85, 1) rotate(5deg);
+  }
+  68% {
+    transform: scale3d(0.88, 1.05, 1) rotate(-4deg);
+  }
+}
+
+.chakra-fog-orbit-arm {
+  animation-name: chakraFogOrbitArm;
+  animation-duration: var(--orbit-dur, 72s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: var(--orbit-delay, 0s);
+}
+
+.chakra-fog-orbit-counter {
+  animation-name: chakraFogOrbitCounter;
+  animation-duration: var(--orbit-dur, 72s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-delay: var(--orbit-delay, 0s);
+}
+
+.chakra-fog-spark.chakra-fog-breath {
+  transform-origin: 50% 50%;
+}
+
+.chakra-fog-breath-a {
+  animation-name: chakraFogBreathA;
+  animation-duration: var(--breath-dur, 17s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-delay: var(--breath-delay, 0s);
+}
+
+.chakra-fog-breath-b {
+  animation-name: chakraFogBreathB;
+  animation-duration: var(--breath-dur, 15s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-delay: var(--breath-delay, 0s);
+}
+
+.chakra-fog-breath-c {
+  animation-name: chakraFogBreathC;
+  animation-duration: var(--breath-dur, 19s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-delay: var(--breath-delay, 0s);
+}
+
+.chakra-fog-breath-d {
+  animation-name: chakraFogBreathD;
+  animation-duration: var(--breath-dur, 16s);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-delay: var(--breath-delay, 0s);
+}
+
+.chakra-fog-paused .chakra-fog-orbit-arm,
+.chakra-fog-paused .chakra-fog-orbit-counter,
+.chakra-fog-paused .chakra-fog-spark {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chakra-fog-orbit-arm {
+    animation: none !important;
+    transform: rotate(var(--orbit-angle-frozen, 0deg)) translateX(var(--orbit-r));
+  }
+
+  .chakra-fog-orbit-counter {
+    animation: none !important;
+    transform: rotate(calc(-1 * var(--orbit-angle-frozen, 0deg)));
+  }
+
+  .chakra-fog-spark.chakra-fog-breath {
+    animation: none !important;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+/* Selection */
+::selection {
+  background: rgba(124, 92, 255, 0.4);
+  color: #fff;
+}
+
+/* Scrollbar — subtle */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(184, 168, 255, 0.12);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 168, 255, 0.25);
+}
+
+/* Typography helpers — readable sizes everywhere */
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.01em;
+}
+
+@layer components {
+  .glass {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.015) 60%,
+      rgba(124, 92, 255, 0.06) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+
+  .glass-strong {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.07) 0%,
+      rgba(255, 255, 255, 0.02) 60%,
+      rgba(124, 92, 255, 0.1) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(120deg, #f1ecff 0%, #b8a8ff 45%, #ff89b8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Section labels — inherit Inter from html/body */
+  .ritual-eyebrow {
+    @apply font-semibold uppercase tracking-[0.12em] text-[11px] text-ink-muted;
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/60 focus-visible:ring-offset-2 focus-visible:ring-offset-void;
+  }
+}
+
+/* Reduced motion: shorten interactive transitions only.
+   Do NOT zero-out animation-duration globally — that freezes decorative ambient layers
+   (body drift, StarField, chakra washes, Canvas aurora) which users still expect on /chakras. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Mobile: keep input font-size at 16px+ to prevent iOS zoom on focus */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
