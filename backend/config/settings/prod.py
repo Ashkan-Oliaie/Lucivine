@@ -1,4 +1,5 @@
 from .base import *  # noqa: F401, F403
+from .base import _normalize_origin, env  # underscore-prefixed names are skipped by `import *`
 
 DEBUG = False
 
