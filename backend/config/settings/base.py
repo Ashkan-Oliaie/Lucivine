@@ -147,7 +147,15 @@ EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@lucivine.app")
 ANYMAIL = {"SENDGRID_API_KEY": env("SENDGRID_API_KEY", default="")}
 
-FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
+def _normalize_origin(url: str) -> str:
+    """CORS / trusted-origin URLs must not end with '/' — django-cors-headers treats it as an invalid path."""
+    url = str(url).strip()
+    while url.endswith("/"):
+        url = url[:-1]
+    return url
+
+
+FRONTEND_URL = _normalize_origin(env("FRONTEND_URL", default="http://localhost:5173"))
 
 # Web Push (VAPID).
 # If VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY are unset, `apps.reminders.vapid`
@@ -159,8 +167,12 @@ VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", default="")
 VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY", default="")
 VAPID_CLAIMS_EMAIL = env("VAPID_CLAIMS_EMAIL", default="admin@lucivine.app")
 
-# CORS
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[FRONTEND_URL])
+# CORS — strip trailing slashes from env (common mistake when copying URLs).
+CORS_ALLOWED_ORIGINS = [
+    _normalize_origin(o)
+    for o in env.list("CORS_ALLOWED_ORIGINS", default=[FRONTEND_URL])
+    if _normalize_origin(o)
+]
 CORS_ALLOW_CREDENTIALS = True
 
 # Logging — structured JSON for prod, human-readable in dev (overridden in dev.py)
