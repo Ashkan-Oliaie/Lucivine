@@ -34,32 +34,41 @@ make down                   # stop everything
 make clean                  # stop + drop volumes (destroys local DB)
 ```
 
-## Production (`docker-compose.prod.yml`)
+## Production / Dokploy (`docker-compose.yml`)
 
-Single Compose file for a VPS-style deploy: **Postgres**, **Gunicorn**, **nginx** (built SPA + proxies `/api`, `/admin`, `/static`, `/health/`), plus the **scheduler** loop calling the internal reminder endpoint.
+Repo-root **`docker-compose.yml`** is the **production** stack (Postgres, Gunicorn, **`serve`** on port **3000**, scheduler). Point **Dokploy** at this file (and set env vars in the UI).
+
+Publish **two** HTTP ports: **SPA** (`WEB_HTTP_PORT`, default **3000**) and **API** (`BACKEND_HTTP_PORT`, default **8000**). The SPA is built with **`VITE_API_URL`** pointing at that API origin (default `http://localhost:8000`). Set **`FRONTEND_URL`** to your SPA URL (e.g. `http://localhost:3000`) so **CORS** matches.
+
+Local CLI (same file):
 
 ```bash
 cp .env.example .env
-# DJANGO_SECRET_KEY, POSTGRES_*,
-# DJANGO_ALLOWED_HOSTS=your.domain.com
-# FRONTEND_URL=https://your.domain.com
-# CSRF_TRUSTED_ORIGINS=https://your.domain.com
-# INTERNAL_SCHEDULER_SECRET=long-random-string
-# Omit VITE_API_URL so the browser uses same-origin `/api` via nginx.
+# DJANGO_SECRET_KEY, POSTGRES_*, DJANGO_ALLOWED_HOSTS=localhost
+# FRONTEND_URL=http://localhost:3000
+# VITE_API_URL=http://localhost:8000   # optional; compose defaults apply
 
-make prod-up
-make prod-migrate
+docker compose up -d --build
+docker compose exec backend python manage.py migrate
 ```
 
-Bind port **`WEB_HTTP_PORT`** (default `80`). Put HTTPS in front (Caddy, Traefik, Cloudflare, …); web push expects a secure origin. For a quick HTTP-only smoke test on localhost, set `DJANGO_SECURE_SSL_REDIRECT=false` in `.env`.
+Or: **`make prod-up`** / **`make prod-migrate`** (uses **`docker-compose.yml`**).
+
+### Local development (`docker-compose.dev.yml`)
+
+Hot reload: **`make up`** uses **`docker-compose.dev.yml`** (Vite + `runserver`).
+
+Put **HTTPS** in front (Caddy, Traefik, Cloudflare, …) for real deployments; web push expects a secure origin. For a quick HTTP-only smoke test on localhost, set `DJANGO_SECURE_SSL_REDIRECT=false` in `.env`.
 
 ## Layout
 
 ```
 backend/           Django project (config/) + apps/ (users, journal, meditation, ...)
-frontend/         Vite + React + TS app
-infra/terraform/  GCP infrastructure as code (later)
-docs/             Architecture notes, runbooks
+frontend/          Vite + React + TS app
+docker-compose.yml Production / Dokploy (Postgres + Gunicorn + serve + scheduler)
+docker-compose.dev.yml Local dev (Vite + runserver + bind mounts)
+infra/terraform/   GCP infrastructure as code (later)
+docs/              Architecture notes, runbooks
 ```
 
 ## Production access

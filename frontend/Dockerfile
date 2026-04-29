@@ -15,11 +15,11 @@ ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
-# nginx.conf = SPA + reverse-proxy /api to service name `backend` (docker-compose.prod).
-# nginx.frontend-only.conf = SPA only; set build-arg NGINX_CONF for split deploy (API on another host).
-FROM nginx:alpine AS prod
-ARG NGINX_CONF=nginx.conf
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY ${NGINX_CONF} /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Static SPA — `serve -s` handles client-side routing (no nginx).
+FROM node:20-alpine AS prod
+WORKDIR /app
+ENV NODE_ENV=production
+RUN npm install -g serve@14
+COPY --from=build /app/dist ./dist
+EXPOSE 3000
+CMD ["serve", "-s", "dist", "-l", "3000"]

@@ -1,14 +1,26 @@
+# Full stack for production / Dokploy — Postgres, Gunicorn, SPA (`serve`), scheduler.
+#
+# Dokploy: set this file as the Compose path (usually repo root `docker-compose.yml`).
+# Provide env vars in Dokploy UI or a `.env` file — especially POSTGRES_*, DJANGO_SECRET_KEY,
+# DJANGO_ALLOWED_HOSTS, FRONTEND_URL, VITE_API_URL (must match public API URL clients use).
+#
+# Local CLI:
+#   docker compose up -d --build
+#   docker compose exec backend python manage.py migrate
+#
+# SPA defaults to http://localhost:${WEB_HTTP_PORT:-3000}, API http://localhost:${BACKEND_HTTP_PORT:-8000}.
+# Set FRONTEND_URL=http://localhost:3000 so CORS matches when testing locally.
+
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -18,60 +30,52 @@ services:
   backend:
     build:
       context: ./backend
-      target: dev
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - ./backend:/app
-    ports:
-      - "8000:8000"
+      target: prod
+    restart: unless-stopped
     env_file: .env
     environment:
-      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
     depends_on:
       db:
         condition: service_healthy
+    ports:
+      - "${BACKEND_HTTP_PORT:-8000}:8000"
 
-  frontend:
+  web:
     build:
       context: ./frontend
-      target: dev
-    command: npm run dev -- --host 0.0.0.0
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
+      target: prod
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    restart: unless-stopped
     ports:
-      - "5173:5173"
-    environment:
-      # Used by vite.config.ts dev proxy only (hostname `backend` resolves inside this network).
-      VITE_PROXY_BACKEND: http://backend:8000
+      - "${WEB_HTTP_PORT:-3000}:3000"
     depends_on:
       - backend
 
-  # Calls fire-due-reminders frequently so pushes fire soon after next_fire_at (still polled,
-  # not second-perfect — align cron frequency similarly in prod).
   scheduler:
     image: alpine:3.19
     restart: unless-stopped
     depends_on:
       - backend
-    env_file: .env
     environment:
-      INTERNAL_SCHEDULER_SECRET: ${INTERNAL_SCHEDULER_SECRET:-dev-scheduler-secret}
+      INTERNAL_SCHEDULER_SECRET: ${INTERNAL_SCHEDULER_SECRET:-change-me-scheduler-secret}
     command:
       - /bin/sh
       - -c
       - |
           set -eu
           apk add --no-cache curl >/dev/null
-          echo "[scheduler] ticking fire-due-reminders every 15s"
-          sleep 12
+          echo "[scheduler] firing due reminders every 60s"
+          sleep 15
           while true; do
             curl -fsS -X POST "http://backend:8000/api/internal/fire-due-reminders/" \
               -H "X-Internal-Secret: $$INTERNAL_SCHEDULER_SECRET" \
               || echo "[scheduler] tick failed"
-            sleep 15
+            sleep 60
           done
 
 volumes:
   postgres_data:
-  frontend_node_modules:
