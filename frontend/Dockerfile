@@ -22,4 +22,5 @@ ENV NODE_ENV=production
 RUN npm install -g serve@14
 COPY --from=build /app/dist ./dist
 EXPOSE 3000
-CMD ["serve", "-s", "dist", "-l", "3000"]
+# Explicit host: `-l 3000` alone can replace the default listen target and bind localhost-only → proxy 502.
+CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:3000"]

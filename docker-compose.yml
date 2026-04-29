@@ -1,8 +1,8 @@
 # Full stack for production / Dokploy — Postgres, Gunicorn, SPA (`serve`), scheduler.
 #
 # Dokploy: set this file as the Compose path (usually repo root `docker-compose.yml`).
-# Provide env vars in Dokploy UI or a `.env` file — especially POSTGRES_*, DJANGO_SECRET_KEY,
-# DJANGO_ALLOWED_HOSTS, FRONTEND_URL, VITE_API_URL (must match public API URL clients use).
+# Provide env vars in Dokploy UI or copy deploy/docker-compose.prod.env → `.env` at repo root.
+# Especially POSTGRES_*, DJANGO_SECRET_KEY, DJANGO_ALLOWED_HOSTS, FRONTEND_URL, VITE_API_URL (must match public API URL clients use).
 #
 # Local CLI:
 #   docker compose up -d --build
