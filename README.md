@@ -1,4 +1,4 @@
-# Oneiric Academy
+# Lucivine
 
 A full-stack lucid dreaming platform: structured 6-week curriculum, dream journal, chakra meditation, reality checks, and a progressive grimoire of in-dream "spells".
 

@@ -42,8 +42,8 @@ def _cue(reminder: Reminder) -> tuple[str, str, str]:
     except ValueError:
         log.warning("Unknown reminder.kind=%r — using generic cue", reminder.kind)
         return (
-            label or "Oneiric Academy",
-            label or "Reminder — tap to open Oneiric.",
+            label or "Lucivine",
+            label or "Reminder — tap to open Lucivine.",
             "/",
         )
     cues = {
@@ -72,7 +72,7 @@ def _cue(reminder: Reminder) -> tuple[str, str, str]:
             (
                 f"{label} — time for your practice."
                 if label
-                else "Your custom reminder — tap to open Oneiric."
+                else "Your custom reminder — tap to open Lucivine."
             ),
             "/",
         ),
@@ -221,7 +221,7 @@ def send_test_push(user) -> dict:
     delivered, errors = deliver_push(
         user,
         {
-            "title": "Oneiric Academy",
+            "title": "Lucivine",
             "body": "Notifications are on. The dream remembers itself.",
             "tag": f"test-{uuid.uuid4().hex[:16]}",
             "url": "/",

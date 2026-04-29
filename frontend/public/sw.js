@@ -1,4 +1,4 @@
-/* Oneiric Academy — service worker for Web Push.
+/* Lucivine — service worker for Web Push.
  *
  * Two responsibilities:
  *   1. `push` event   → display the notification.
@@ -91,12 +91,12 @@ self.addEventListener("push", (event) => {
         payload = event.data ? event.data.json() : {};
       } catch (_e) {
         payload = {
-          title: "Oneiric Academy",
+          title: "Lucivine",
           body: event.data ? event.data.text() : "",
         };
       }
 
-      const title = payload.title || "Oneiric Academy";
+      const title = payload.title || "Lucivine";
       const urlForClick = resolveOpenUrl(payload.url || "/");
 
       const base = {

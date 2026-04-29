@@ -59,10 +59,10 @@ export function Header({ onOpenDrawer }: Props) {
             </span>
             <span className="hidden sm:flex flex-col leading-none">
               <span className=" text-base md:text-lg text-ink-primary">
-                Oneiric
+                Lucivine
               </span>
               <span className=" text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-muted mt-1">
-                Academy
+                Dream practice
               </span>
             </span>
           </Link>

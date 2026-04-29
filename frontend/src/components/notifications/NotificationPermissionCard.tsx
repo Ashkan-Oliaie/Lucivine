@@ -225,7 +225,7 @@ export function NotificationPermissionCard() {
         </p>
         {isIOS() && !isStandalone() && (
           <p className=" text-sm text-ink-secondary mt-2 leading-relaxed">
-            On iPhone/iPad, web push only works after you install Oneiric to your
+            On iPhone/iPad, web push only works after you install Lucivine to your
             Home Screen. In Safari, tap Share → <em>Add to Home Screen</em>, then
             open the app from there.
           </p>

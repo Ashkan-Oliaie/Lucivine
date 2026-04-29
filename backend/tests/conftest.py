@@ -14,7 +14,7 @@ def api() -> APIClient:
 @pytest.fixture
 def user(db):
     return User.objects.create_user(
-        email="seeker@oneiric.test",
+        email="seeker@lucivine.test",
         password="threshold-passage-9",
         display_name="Seeker",
     )

@@ -1,7 +1,7 @@
 .PHONY: help up down build rebuild logs shell migrate makemigrations seed test lint manage frontend-shell frontend-install ps restart clean tick vapid
 
 help:
-	@echo "Oneiric Academy — local dev commands"
+	@echo "Lucivine — local dev commands"
 	@echo ""
 	@echo "  make up              Start db, backend, frontend, and reminder scheduler"
 	@echo "  make down            Stop all services"

@@ -41,7 +41,7 @@ function AuthLayout({ children }: { children: ReactNode }) {
             <span className="absolute inset-[3px] rounded-full bg-void/80 border border-white/10" />
             <span className="relative text-2xl text-ink-primary">✷</span>
           </span>
-          <p className="text-2xl text-gradient">Oneiric Academy</p>
+          <p className="text-2xl text-gradient">Lucivine</p>
           <p className="ritual-eyebrow">Cross the threshold</p>
         </div>
         {children}

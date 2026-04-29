@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthState>()(
       clear: () => set({ access: null, refresh: null, user: null }),
     }),
     {
-      name: "oneiric.auth",
+      name: "lucivine.auth",
       onRehydrateStorage: () => (state) => {
         if (state) state.hydrated = true;
       },

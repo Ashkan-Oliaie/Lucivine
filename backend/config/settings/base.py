@@ -73,8 +73,8 @@ ASGI_APPLICATION = "config.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB", default="oneiric"),
-        "USER": env("POSTGRES_USER", default="oneiric"),
+        "NAME": env("POSTGRES_DB", default="lucivine"),
+        "USER": env("POSTGRES_USER", default="lucivine"),
         "PASSWORD": env("POSTGRES_PASSWORD", default=""),
         "HOST": env("POSTGRES_HOST", default="db"),
         "PORT": env("POSTGRES_PORT", default="5432"),
@@ -128,8 +128,8 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Oneiric Academy API",
-    "DESCRIPTION": "Backend API for the Oneiric Academy lucid dreaming platform.",
+    "TITLE": "Lucivine API",
+    "DESCRIPTION": "Backend API for the Lucivine lucid dreaming platform.",
     "VERSION": "0.1.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
@@ -144,7 +144,7 @@ DEFAULT_EMAIL_VERIFICATION_CODE = env("DEFAULT_EMAIL_VERIFICATION_CODE", default
 
 # Email
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@oneiric.academy")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@lucivine.app")
 ANYMAIL = {"SENDGRID_API_KEY": env("SENDGRID_API_KEY", default="")}
 
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
@@ -157,7 +157,7 @@ FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
 # Optional override: `make vapid` / `npx web-push generate-vapid-keys`.
 VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", default="")
 VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY", default="")
-VAPID_CLAIMS_EMAIL = env("VAPID_CLAIMS_EMAIL", default="admin@oneiric.academy")
+VAPID_CLAIMS_EMAIL = env("VAPID_CLAIMS_EMAIL", default="admin@lucivine.app")
 
 # CORS
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[FRONTEND_URL])
