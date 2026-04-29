@@ -1,5 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 
 import environ
 
@@ -156,6 +157,11 @@ def _normalize_origin(url: str) -> str:
 
 
 FRONTEND_URL = _normalize_origin(env("FRONTEND_URL", default="http://localhost:5173"))
+
+# Avoid HTTP 400 DisallowedHost when FRONTEND_URL’s hostname differs from DJANGO_ALLOWED_HOSTS (Traefik previews).
+_fu_host = urlparse(FRONTEND_URL).hostname
+if _fu_host and _fu_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_fu_host)
 
 # Web Push (VAPID).
 # If VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY are unset, `apps.reminders.vapid`

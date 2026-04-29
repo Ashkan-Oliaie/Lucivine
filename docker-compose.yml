@@ -1,15 +1,15 @@
-# Full stack for production / Dokploy — Postgres, Gunicorn, SPA (`serve`), scheduler.
+# Single-file production stack for Dokploy.
 #
-# Repo root: this file + `.env` (template `deploy/docker-compose.prod.env`) or the same KEY= values in your host UI.
-# Local CLI:
-#   docker compose up -d --build
-#   docker compose exec backend python manage.py migrate
+# How Dokploy uses this:
+#   - Paste env vars into the Dokploy UI; Dokploy writes them to .env next to this file.
+#   - Dokploy runs `docker compose up -d --build` from the repo root.
 #
-# SPA defaults to http://localhost:${WEB_HTTP_PORT:-3001}, API http://localhost:${BACKEND_HTTP_PORT:-8000}.
-# Set FRONTEND_URL=http://localhost:3001 so CORS matches when testing locally (container listens on 3000).
+# Direct access (no Traefik / no domain):
+#   SPA   → http://<host>:${WEB_HTTP_PORT:-3001}
+#   API   → http://<host>:${BACKEND_HTTP_PORT:-8000}
 #
-# Dokploy / Traefik: `web` + `backend` join bridge network `dokploy-network` (created by Compose if missing —
-# same name Dokploy’s Traefik uses). No manual `docker network create`.
+# When serving over plain HTTP on an IP, set DJANGO_SECURE_SSL_REDIRECT=false
+# (otherwise Django 301s every request to https:// and nothing answers).
 
 services:
   db:
@@ -22,8 +22,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      # Compose substitutes ${VAR} from the host env — Dokploy often omits POSTGRES_* there,
-      # leaving pg_isready with empty -U/-d so health never passes.
       test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 || exit 1"]
       interval: 5s
       timeout: 5s
@@ -40,7 +38,7 @@ services:
       DJANGO_SETTINGS_MODULE: config.settings.prod
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
-      # Same interpolation as `db` — overrides env_file so Django always matches Postgres (avoids Dokploy / .env drift).
+      # Re-pin these so Django always matches the `db` service even if .env drifts.
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -49,28 +47,19 @@ services:
         condition: service_healthy
     ports:
       - "${BACKEND_HTTP_PORT:-8000}:8000"
-    networks:
-      - default
-      - dokploy-network
-    labels:
-      - traefik.docker.network=dokploy-network
 
   web:
     build:
       context: ./frontend
       target: prod
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        # Baked into the JS bundle at build time — must point at the public API URL the browser sees.
+        VITE_API_URL: ${VITE_API_URL}
     restart: unless-stopped
     ports:
       - "${WEB_HTTP_PORT:-3001}:3000"
     depends_on:
       - backend
-    networks:
-      - default
-      - dokploy-network
-    labels:
-      - traefik.docker.network=dokploy-network
 
   scheduler:
     image: alpine:3.19
@@ -78,14 +67,13 @@ services:
     depends_on:
       - backend
     environment:
-      INTERNAL_SCHEDULER_SECRET: ${INTERNAL_SCHEDULER_SECRET:-change-me-scheduler-secret}
+      INTERNAL_SCHEDULER_SECRET: ${INTERNAL_SCHEDULER_SECRET}
     command:
       - /bin/sh
       - -c
       - |
           set -eu
           apk add --no-cache curl >/dev/null
-          echo "[scheduler] firing due reminders every 60s"
           sleep 15
           while true; do
             curl -fsS -X POST "http://backend:8000/api/internal/fire-due-reminders/" \
@@ -96,8 +84,3 @@ services:
 
 volumes:
   postgres_data:
-
-networks:
-  dokploy-network:
-    name: dokploy-network
-    driver: bridge
