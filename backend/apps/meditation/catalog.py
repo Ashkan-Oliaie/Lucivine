@@ -1,0 +1,77 @@
+"""Static chakra catalog. Returned by /api/meditation/chakras/."""
+
+CHAKRAS = [
+    {
+        "id": "root",
+        "name": "Muladhara",
+        "english": "Root",
+        "color": "#c0392b",
+        "frequency_hz": 396,
+        "mantra": "LAM",
+        "location": "Base of spine",
+        "theme": "Grounding, safety, embodiment",
+    },
+    {
+        "id": "sacral",
+        "name": "Svadhisthana",
+        "english": "Sacral",
+        "color": "#e67e22",
+        "frequency_hz": 417,
+        "mantra": "VAM",
+        "location": "Below navel",
+        "theme": "Creativity, flow, sensation",
+    },
+    {
+        "id": "solar",
+        "name": "Manipura",
+        "english": "Solar Plexus",
+        "color": "#f1c40f",
+        "frequency_hz": 528,
+        "mantra": "RAM",
+        "location": "Upper abdomen",
+        "theme": "Will, intention, agency",
+    },
+    {
+        "id": "heart",
+        "name": "Anahata",
+        "english": "Heart",
+        "color": "#27ae60",
+        "frequency_hz": 639,
+        "mantra": "YAM",
+        "location": "Center of chest",
+        "theme": "Compassion, connection, openness",
+    },
+    {
+        "id": "throat",
+        "name": "Vishuddha",
+        "english": "Throat",
+        "color": "#3498db",
+        "frequency_hz": 741,
+        "mantra": "HAM",
+        "location": "Throat",
+        "theme": "Voice, expression, truth",
+    },
+    {
+        "id": "thirdeye",
+        "name": "Ajna",
+        "english": "Third Eye",
+        "color": "#6c5ce7",
+        "frequency_hz": 852,
+        "mantra": "OM",
+        "location": "Between brows",
+        "theme": "Inner sight, lucidity, intuition",
+    },
+    {
+        "id": "crown",
+        "name": "Sahasrara",
+        "english": "Crown",
+        "color": "#a29bfe",
+        "frequency_hz": 963,
+        "mantra": "AH",
+        "location": "Top of head",
+        "theme": "Unity, transcendence, the witness",
+    },
+]
+
+CHAKRA_IDS = [c["id"] for c in CHAKRAS]
+CHAKRA_BY_ID = {c["id"]: c for c in CHAKRAS}

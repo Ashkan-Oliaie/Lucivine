@@ -1,0 +1,111 @@
+[
+  {
+    "model": "practice.weeklyprogram",
+    "pk": 1,
+    "fields": {
+      "title": "The Awakening",
+      "focus": "Build dream awareness and a daily reality-check rhythm.",
+      "daily_practices": [
+        "morning_recall",
+        "rc_every_2h",
+        "evening_reflection",
+        "journal_entry"
+      ],
+      "primary_technique": "MILD",
+      "technique_detail": "Mnemonic Induction. As you fall asleep, repeat with intent: 'Tonight I will recognise that I am dreaming.' Visualise becoming lucid in a recent dream. Hold the intention until sleep takes you.",
+      "recommended_chakras": ["thirdeye", "crown"]
+    }
+  },
+  {
+    "model": "practice.weeklyprogram",
+    "pk": 2,
+    "fields": {
+      "title": "Threads of Memory",
+      "focus": "Strengthen recall. Without memory, lucidity is invisible.",
+      "daily_practices": [
+        "wake_recall_freeze",
+        "voice_memo_recall",
+        "rc_every_2h",
+        "journal_entry",
+        "evening_reflection"
+      ],
+      "primary_technique": "DILD",
+      "technique_detail": "Dream-Initiated Lucid Dream. Train recognition of dream signs by reviewing your journal nightly. The pattern of strangeness becomes a doorway: when you see it again, you wake within.",
+      "recommended_chakras": ["heart", "thirdeye"]
+    }
+  },
+  {
+    "model": "practice.weeklyprogram",
+    "pk": 3,
+    "fields": {
+      "title": "Bridge of Sleep",
+      "focus": "First WILD attempts. Ride the hypnagogic wave consciously.",
+      "daily_practices": [
+        "morning_recall",
+        "afternoon_meditation",
+        "rc_every_2h",
+        "wbtb_3am",
+        "wild_attempt",
+        "journal_entry"
+      ],
+      "primary_technique": "WILD",
+      "technique_detail": "Wake-Initiated Lucid Dream. Lie still on your back. Watch hypnagogic imagery without grasping. Stay aware as vibrations and sounds surge. Do not move. Let the body sleep while the witness remains.",
+      "recommended_chakras": ["thirdeye", "crown"]
+    }
+  },
+  {
+    "model": "practice.weeklyprogram",
+    "pk": 4,
+    "fields": {
+      "title": "The Hypnagogic Garden",
+      "focus": "SSILD cycles to gently sharpen senses across the threshold.",
+      "daily_practices": [
+        "morning_recall",
+        "rc_every_2h",
+        "wbtb_3am",
+        "ssild_cycles",
+        "journal_entry"
+      ],
+      "primary_technique": "SSILD",
+      "technique_detail": "Senses-Initiated Lucid Dream. After WBTB, cycle slow attention across sight, sound, touch — three rounds slow, three rounds quick — then sleep. Lucidity often arises in the next dream.",
+      "recommended_chakras": ["heart", "throat", "thirdeye"]
+    }
+  },
+  {
+    "model": "practice.weeklyprogram",
+    "pk": 5,
+    "fields": {
+      "title": "Wake Back to Bed",
+      "focus": "Use the late-night REM window deliberately.",
+      "daily_practices": [
+        "early_bedtime",
+        "wbtb_4_5h",
+        "20m_awake_practice",
+        "wild_or_mild_attempt",
+        "journal_entry"
+      ],
+      "primary_technique": "WBTB",
+      "technique_detail": "Wake Back to Bed. Sleep four to five hours. Wake fully for fifteen to twenty minutes — read about lucid dreaming. Return to bed with strong intention. WBTB is the single highest-yield protocol.",
+      "recommended_chakras": ["solar", "thirdeye"]
+    }
+  },
+  {
+    "model": "practice.weeklyprogram",
+    "pk": 6,
+    "fields": {
+      "title": "Weaving Worlds",
+      "focus": "Integrate techniques. Begin sustained, purposeful lucidity.",
+      "daily_practices": [
+        "chosen_technique",
+        "rc_every_2h",
+        "evening_chakra_session",
+        "wbtb_chosen",
+        "spell_practice",
+        "journal_entry"
+      ],
+      "primary_technique": "WILD",
+      "technique_detail": "Integration. Choose your strongest technique. Set a single dream goal each night — a place to visit, a question to ask, a spell to attempt. Lucidity becomes a practice rather than an event.",
+      "recommended_chakras": ["root", "sacral", "solar", "heart", "throat", "thirdeye", "crown"]
+    }
+  }
+]

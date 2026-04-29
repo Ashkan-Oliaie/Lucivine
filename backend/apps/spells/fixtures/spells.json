@@ -1,0 +1,197 @@
+[
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000001",
+    "fields": {
+      "slug": "stabilize",
+      "name": "Stabilize",
+      "tier": 1,
+      "description": "Anchor lucidity by examining your hands. Slowly turn them over, count the fingers, feel the surfaces. Returns clarity when the dream begins to fade.",
+      "incantation": "I am here. I am awake within the dream.",
+      "unlock_threshold": 0,
+      "category": "stabilization"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000002",
+    "fields": {
+      "slug": "ground",
+      "name": "Ground",
+      "tier": 1,
+      "description": "Touch the dream ground with your bare feet. Press through it. Sensation deepens awareness and slows premature waking.",
+      "incantation": "Earth beneath. Mind above. Awake between.",
+      "unlock_threshold": 0,
+      "category": "stabilization"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000003",
+    "fields": {
+      "slug": "spin",
+      "name": "Spin Anchor",
+      "tier": 1,
+      "description": "Spin in place when the dream destabilises. The vestibular shock often re-renders the scene rather than collapsing it.",
+      "incantation": "Round the world turns; I remain.",
+      "unlock_threshold": 0,
+      "category": "stabilization"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000004",
+    "fields": {
+      "slug": "summon-object",
+      "name": "Summon",
+      "tier": 2,
+      "description": "Reach into a pocket, behind your back, or under a cloth. Expect the object to be there, and it will be. Belief is the gesture.",
+      "incantation": "What I expect, I find.",
+      "unlock_threshold": 3,
+      "category": "manifestation"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000005",
+    "fields": {
+      "slug": "reshape-hands",
+      "name": "Reshape",
+      "tier": 2,
+      "description": "Stretch a finger, grow a sixth, fuse two together. Begin reshaping the dream with the most familiar surface — your own hands.",
+      "incantation": "Form is fluid. I am the sculptor.",
+      "unlock_threshold": 3,
+      "category": "transformation"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000006",
+    "fields": {
+      "slug": "passwall",
+      "name": "Passwall",
+      "tier": 2,
+      "description": "Walk through a solid surface. Soften the boundary by treating it as mist; do not slow your stride.",
+      "incantation": "Walls are agreements. I no longer agree.",
+      "unlock_threshold": 3,
+      "category": "environmental"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000007",
+    "fields": {
+      "slug": "transmute",
+      "name": "Transmute",
+      "tier": 3,
+      "description": "Hold a small object and watch it become another. A coin into a key, a leaf into a moth. The intermediary states matter — feel the shift.",
+      "incantation": "What is, becomes. What becomes, is.",
+      "unlock_threshold": 10,
+      "category": "transformation"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000008",
+    "fields": {
+      "slug": "doorway",
+      "name": "Threshold Travel",
+      "tier": 3,
+      "description": "Choose any door. Form a vivid intention of where it leads. Open with conviction. The dream reorganises beyond the frame.",
+      "incantation": "Beyond this door, the place I name.",
+      "unlock_threshold": 10,
+      "category": "environmental"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000009",
+    "fields": {
+      "slug": "summon-guide",
+      "name": "Summon Guide",
+      "tier": 3,
+      "description": "Call out, expecting a wise figure to approach. Question them. Their answers often surface knowledge the waking mind cannot.",
+      "incantation": "I call upon what I already know.",
+      "unlock_threshold": 10,
+      "category": "manifestation"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000010",
+    "fields": {
+      "slug": "shapeshift",
+      "name": "Shapeshift",
+      "tier": 4,
+      "description": "Become an animal. The trick is not to imagine it; it is to remember being it. Begin with the gait, then the body.",
+      "incantation": "Old skin sheds. New skin remembers.",
+      "unlock_threshold": 25,
+      "category": "transformation"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000011",
+    "fields": {
+      "slug": "weather-shift",
+      "name": "Weather Shift",
+      "tier": 4,
+      "description": "Will the sky to change. Storm to silver light, dusk to dawn. Slowly at first; the dream's internal weather has momentum.",
+      "incantation": "The sky listens. I speak softly.",
+      "unlock_threshold": 25,
+      "category": "environmental"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000012",
+    "fields": {
+      "slug": "invert-gravity",
+      "name": "Invert Gravity",
+      "tier": 4,
+      "description": "Walk up the wall. Step onto the ceiling. Reorient your sense of down. Often easier than flight, and instructive about dream logic.",
+      "incantation": "Down is a direction. I choose another.",
+      "unlock_threshold": 25,
+      "category": "environmental"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000013",
+    "fields": {
+      "slug": "voidwalk",
+      "name": "Voidwalk",
+      "tier": 5,
+      "description": "Step into the dark space between dreams. Hold your form there. Re-emerge by intending a destination — a practiced jump between scenes.",
+      "incantation": "Between the dreams, the dreamer waits.",
+      "unlock_threshold": 50,
+      "category": "environmental"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000014",
+    "fields": {
+      "slug": "compress-time",
+      "name": "Compress Time",
+      "tier": 5,
+      "description": "Fold a long inner experience into a moment of dream-time. Useful for rehearsal, contemplation, or sustained attention work.",
+      "incantation": "An hour between two breaths.",
+      "unlock_threshold": 50,
+      "category": "transformation"
+    }
+  },
+  {
+    "model": "spells.spell",
+    "pk": "11111111-1111-1111-1111-000000000015",
+    "fields": {
+      "slug": "sustained-witness",
+      "name": "Sustained Witness",
+      "tier": 5,
+      "description": "Hold lucidity until natural waking. Do not act. Simply remain — the rarest discipline. The dream becomes a long, lucid silence.",
+      "incantation": "I do nothing. I am everything.",
+      "unlock_threshold": 50,
+      "category": "stabilization"
+    }
+  }
+]

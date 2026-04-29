@@ -1,0 +1,19 @@
+{
+  "name": "Oneiric Academy",
+  "short_name": "Oneiric",
+  "description": "A six-week practice for crossing into lucid dreams.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#05030f",
+  "theme_color": "#05030f",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
