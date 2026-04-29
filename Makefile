@@ -18,7 +18,7 @@ help:
 	@echo ""
 	@echo "  Production / Dokploy (repo root docker-compose.yml — serve + gunicorn + Postgres):"
 	@echo "  make prod-build      Build prod images"
-	@echo "  make prod-up         Up -d --build (SPA WEB_HTTP_PORT default 3000, API BACKEND_HTTP_PORT default 8000)"
+	@echo "  make prod-up         Up -d --build (SPA WEB_HTTP_PORT default 3001, API BACKEND_HTTP_PORT default 8000)"
 	@echo "  make prod-down       Stop prod stack"
 	@echo "  make prod-migrate    Apply migrations in prod backend container"
 	@echo ""

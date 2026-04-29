@@ -36,16 +36,16 @@ make clean                  # stop + drop volumes (destroys local DB)
 
 ## Production / Dokploy (`docker-compose.yml`)
 
-Repo-root **`docker-compose.yml`** is the **production** stack (Postgres, Gunicorn, **`serve`** on port **3000**, scheduler). Point **Dokploy** at this file (and set env vars in the UI).
+Repo-root **`docker-compose.yml`** is the **production** stack (Postgres, Gunicorn, SPA **`serve`** on container port **3000**, scheduler). Point **Dokploy** at this file (and set env vars in the UI).
 
-Publish **two** HTTP ports: **SPA** (`WEB_HTTP_PORT`, default **3000**) and **API** (`BACKEND_HTTP_PORT`, default **8000**). The SPA is built with **`VITE_API_URL`** pointing at that API origin (default `http://localhost:8000`). Set **`FRONTEND_URL`** to your SPA URL (e.g. `http://localhost:3000`) so **CORS** matches.
+Publish **two** HTTP ports: **SPA** (`WEB_HTTP_PORT`, default host **3001** → container **3000**) and **API** (`BACKEND_HTTP_PORT`, default **8000**). The SPA is built with **`VITE_API_URL`** pointing at that API origin (default `http://localhost:8000`). Set **`FRONTEND_URL`** to your SPA URL (e.g. `http://localhost:3001`) so **CORS** matches.
 
 Local CLI (same file):
 
 ```bash
 cp .env.example .env
 # DJANGO_SECRET_KEY, POSTGRES_*, DJANGO_ALLOWED_HOSTS=localhost
-# FRONTEND_URL=http://localhost:3000
+# FRONTEND_URL=http://localhost:3001
 # VITE_API_URL=http://localhost:8000   # optional; compose defaults apply
 
 docker compose up -d --build
