@@ -1,4 +1,4 @@
-.PHONY: help up down build rebuild logs shell migrate makemigrations seed test lint manage frontend-shell frontend-install ps restart clean tick vapid
+.PHONY: help up down build rebuild logs shell migrate makemigrations seed test lint manage frontend-shell frontend-install ps restart clean tick vapid prod-build prod-up prod-down prod-migrate
 
 help:
 	@echo "Lucivine — local dev commands"
@@ -12,6 +12,12 @@ help:
 	@echo "  make restart         Restart backend"
 	@echo "  make tick            Manually fire due reminders (sim Cloud Scheduler)"
 	@echo "  make vapid           Print Web Push VAPID keys (optional; backend auto-generates)"
+	@echo ""
+	@echo "  Production (docker-compose.prod.yml — nginx + gunicorn + Postgres):"
+	@echo "  make prod-build      Build prod images"
+	@echo "  make prod-up         Up -d --build (bind HTTP port WEB_HTTP_PORT, default 80)"
+	@echo "  make prod-down       Stop prod stack"
+	@echo "  make prod-migrate    Apply migrations in prod backend container"
 	@echo ""
 	@echo "  make shell           Django shell on backend"
 	@echo "  make manage cmd=...  Run any manage.py command, e.g. make manage cmd='createsuperuser'"
@@ -93,6 +99,18 @@ frontend-shell:
 
 frontend-install:
 	docker compose exec frontend npm ci
+
+prod-build:
+	docker compose -f docker-compose.prod.yml build
+
+prod-up:
+	docker compose -f docker-compose.prod.yml up -d --build
+
+prod-down:
+	docker compose -f docker-compose.prod.yml down
+
+prod-migrate:
+	docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
 
 clean:
 	docker compose down -v

@@ -2,7 +2,10 @@ from .base import *  # noqa: F401, F403
 
 DEBUG = False
 
-SECURE_SSL_REDIRECT = True
+# Toggle off only when terminating HTTPS exclusively at an outer proxy without HTTPS to Django (avoid redirect loops).
+SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
+
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True

@@ -34,6 +34,25 @@ make down                   # stop everything
 make clean                  # stop + drop volumes (destroys local DB)
 ```
 
+## Production (`docker-compose.prod.yml`)
+
+Single Compose file for a VPS-style deploy: **Postgres**, **Gunicorn**, **nginx** (built SPA + proxies `/api`, `/admin`, `/static`, `/health/`), plus the **scheduler** loop calling the internal reminder endpoint.
+
+```bash
+cp .env.example .env
+# DJANGO_SECRET_KEY, POSTGRES_*,
+# DJANGO_ALLOWED_HOSTS=your.domain.com
+# FRONTEND_URL=https://your.domain.com
+# CSRF_TRUSTED_ORIGINS=https://your.domain.com
+# INTERNAL_SCHEDULER_SECRET=long-random-string
+# Omit VITE_API_URL so the browser uses same-origin `/api` via nginx.
+
+make prod-up
+make prod-migrate
+```
+
+Bind port **`WEB_HTTP_PORT`** (default `80`). Put HTTPS in front (Caddy, Traefik, Cloudflare, …); web push expects a secure origin. For a quick HTTP-only smoke test on localhost, set `DJANGO_SECURE_SSL_REDIRECT=false` in `.env`.
+
 ## Layout
 
 ```
