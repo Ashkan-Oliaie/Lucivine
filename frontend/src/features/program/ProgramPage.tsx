@@ -205,6 +205,9 @@ export default function ProgramPage() {
 
   const currentWeek =
     program?.find((w) => w.week_number === user?.current_week) ?? program?.[0];
+  const nextWeek = currentWeek
+    ? program?.find((w) => w.week_number === currentWeek.week_number + 1)
+    : undefined;
   const currentProgress = currentWeek
     ? progressByWeek.get(currentWeek.week_number)
     : undefined;
@@ -231,18 +234,9 @@ export default function ProgramPage() {
     <>
     <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] gap-8 xl:gap-12 items-start">
       <div className="min-w-0 space-y-10 md:space-y-14">
-        <header className="border-b border-white/[0.06] pb-6">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-ink-primary">
-            Your program
-          </h1>
-          <p className="text-sm text-ink-secondary mt-2 max-w-2xl leading-relaxed">
-            Today’s practices and your place in the six-week sequence.
-          </p>
-        </header>
-
-        {/* Path overview — stacks below header on phones; duplicated in sidebar on lg */}
+        {/* Path overview — collapsible on phones/tablets; duplicated as a sticky aside on lg */}
         <div className="lg:hidden">
-          <PathSummaryAside {...pathAsideProps} />
+          <CollapsiblePath {...pathAsideProps} />
         </div>
 
       {/* Today's ritual — current week practices, expanded */}
@@ -348,60 +342,59 @@ export default function ProgramPage() {
         </motion.section>
       )}
 
-      {/* Path map — all weeks */}
-      <section className="mt-14 md:mt-16">
-        <div className="mb-6">
-          <p className="ritual-eyebrow mb-1.5">Timeline</p>
-          <h2 className="text-xl md:text-2xl font-semibold text-ink-primary">
-            All weeks
-          </h2>
-          <p className="text-sm text-ink-secondary mt-1.5">
-            Expand a week for techniques and daily practices.
-          </p>
-        </div>
-        <div className="h-1 bg-white/5 rounded-full overflow-hidden mb-8">
-          <motion.div
-            className="h-full bg-gradient-to-r from-accent-amethyst to-accent-rose rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${programProgressPct}%` }}
-            transition={{ duration: 1, delay: 0.2 }}
-          />
-        </div>
+      {/* Path map — active week + next week only */}
+      {nextWeek && (
+        <section className="mt-14 md:mt-16">
+          <div className="mb-6">
+            <p className="ritual-eyebrow mb-1.5">Up next</p>
+            <h2 className="text-xl md:text-2xl font-semibold text-ink-primary">
+              Week {nextWeek.week_number} · {nextWeek.title}
+            </h2>
+            <p className="text-sm text-ink-secondary mt-1.5">
+              Step forward when you’re ready — your current week stays open until you do.
+            </p>
+          </div>
+          <div className="h-1 bg-white/5 rounded-full overflow-hidden mb-8">
+            <motion.div
+              className="h-full bg-gradient-to-r from-accent-amethyst to-accent-rose rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${programProgressPct}%` }}
+              transition={{ duration: 1, delay: 0.2 }}
+            />
+          </div>
 
-        <ol className="space-y-3 md:space-y-4">
-          {program?.map((week, idx) => {
-            const isCurrent = user?.current_week === week.week_number;
-            const isOpen = openWeek === week.week_number;
-            const wp = progressByWeek.get(week.week_number);
-            const today = wp?.daily_completion_log[todayISO()] ?? [];
-            const isPast = (user?.current_week ?? 1) > week.week_number;
-            return (
-              <WeekRow
-                key={week.week_number}
-                index={idx}
-                week={week}
-                isCurrent={isCurrent}
-                isPast={isPast}
-                isOpen={isOpen}
-                completedToday={today}
-                onToggle={() =>
-                  setOpenWeek(isOpen ? null : week.week_number)
-                }
-                onSetActive={() => switchWeek.mutate(week.week_number)}
-                onPracticeOpen={(practice) =>
-                  setActivePractice({ week: week.week_number, practice })
-                }
-                onPracticeComplete={(practice) =>
-                  completeMutation.mutate({
-                    week: week.week_number,
-                    practice,
-                  })
-                }
-              />
-            );
-          })}
-        </ol>
-      </section>
+          <ol className="space-y-3 md:space-y-4">
+            <WeekRow
+              key={nextWeek.week_number}
+              index={0}
+              week={nextWeek}
+              isCurrent={false}
+              isPast={false}
+              isOpen={openWeek === nextWeek.week_number}
+              completedToday={
+                progressByWeek.get(nextWeek.week_number)?.daily_completion_log[
+                  todayISO()
+                ] ?? []
+              }
+              onToggle={() =>
+                setOpenWeek(
+                  openWeek === nextWeek.week_number ? null : nextWeek.week_number,
+                )
+              }
+              onSetActive={() => switchWeek.mutate(nextWeek.week_number)}
+              onPracticeOpen={(practice) =>
+                setActivePractice({ week: nextWeek.week_number, practice })
+              }
+              onPracticeComplete={(practice) =>
+                completeMutation.mutate({
+                  week: nextWeek.week_number,
+                  practice,
+                })
+              }
+            />
+          </ol>
+        </section>
+      )}
 
       </div>
 
@@ -421,6 +414,63 @@ export default function ProgramPage() {
         progressByWeek={progressByWeek}
       />
   </>
+  );
+}
+
+function CollapsiblePath(props: {
+  streak: number;
+  lucid: number;
+  week: number;
+  totalWeeks: number;
+  programProgressPct: number;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="glass rounded-2xl border border-white/[0.07] overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-4 px-5 py-4 text-left focus-ring"
+      >
+        <div className="shrink-0 w-9 h-9 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-accent-lavender text-sm">
+          ✦
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+            The path
+          </p>
+          <p className="text-sm text-ink-primary mt-0.5 leading-tight">
+            Week {props.week} of {props.totalWeeks} ·{" "}
+            <span className="text-ink-muted">{props.programProgressPct}%</span>
+          </p>
+        </div>
+        <motion.span
+          animate={{ rotate: open ? 90 : 0 }}
+          transition={{ duration: 0.25 }}
+          className="shrink-0 text-ink-muted text-base"
+          aria-hidden
+        >
+          →
+        </motion.span>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="path-body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden border-t border-white/[0.06]"
+          >
+            <div className="px-5 pt-5 pb-6">
+              <PathSummaryAside {...props} bare />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

@@ -204,7 +204,7 @@ export default function ChakraSessionPage() {
       </nav>
 
       {/* Grid locks vertical rhythm: orb stays centered in flex row; controls slot has fixed height so Begin/Cancel swaps don't jump layout */}
-      <div className="relative z-[3] grid min-h-0 w-full min-w-0 max-w-none flex-1 grid-rows-[auto_auto_minmax(0,1fr)_minmax(272px,272px)] md:grid-rows-[auto_auto_minmax(0,1fr)_minmax(296px,296px)] lg:grid-rows-[auto_auto_minmax(0,1fr)_minmax(304px,304px)] gap-y-6 md:gap-y-10 lg:gap-y-12 px-3 sm:px-4 md:max-w-[min(52rem,calc(100vw-18rem))] lg:max-w-[min(56rem,calc(100vw-22rem))] lg:px-10 xl:px-12 pb-8 md:pb-12 lg:pb-14">
+      <div className="relative z-[3] grid min-h-0 w-full min-w-0 max-w-none flex-1 grid-rows-[auto_auto_auto_auto] md:grid-rows-[auto_auto_minmax(0,1fr)_minmax(296px,296px)] lg:grid-rows-[auto_auto_minmax(0,1fr)_minmax(304px,304px)] gap-y-5 md:gap-y-10 lg:gap-y-12 px-3 sm:px-4 md:max-w-[min(52rem,calc(100vw-18rem))] lg:max-w-[min(56rem,calc(100vw-22rem))] lg:px-10 xl:px-12 pb-8 md:pb-12 lg:pb-14">
         <div className="text-center shrink-0">
           <p className="text-[11px] md:text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted">
             Practice

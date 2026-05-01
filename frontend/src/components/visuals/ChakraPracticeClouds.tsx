@@ -80,8 +80,8 @@ const VEIL_MS = "2600ms";
 const VEIL_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 /**
- * Idle: faint veil + small blobs near center.
- * Running (intense): crossfaded veil + larger blobs; sparks orbit + directional breath (globals.css).
+ * Idle: nothing rendered — animations paused, opacity 0.
+ * Running (intense): aurora-style spread veil fades in; sparks orbit + drift around the orb.
  */
 export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
   const tabVisible = useDocumentVisible();
@@ -90,14 +90,6 @@ export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
   const wash = accent ?? "rgba(72, 52, 140, 0.72)";
   const secondary = accent ? `${accent}aa` : "rgba(140, 70, 110, 0.42)";
   const tertiary = accent ? `${accent}77` : "rgba(70, 110, 160, 0.38)";
-
-  const idleCenterStyle: CSSProperties = {
-    background: `
-      radial-gradient(ellipse 58% 52% at 50% 50%, rgba(124, 92, 255, 0.055), transparent 66%),
-      radial-gradient(ellipse 46% 42% at 50% 50%, ${wash}, transparent 64%),
-      radial-gradient(ellipse 62% 58% at 50% 50%, rgba(62, 42, 120, 0.04), transparent 70%)
-    `,
-  };
 
   /* Ring around orb — lighter washes so sparks read as the main motion */
   const spreadBaseStyle: CSSProperties = {
@@ -113,6 +105,9 @@ export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
     `,
   };
 
+  /* Animations pause entirely when idle so they're "not constantly animating" */
+  const animsPaused = !intense || !tabVisible;
+
   const blobs = useMemo(
     () =>
       [1, 2, 3, 4].map((i) => ({
@@ -127,20 +122,12 @@ export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
       className={cn(
         "pointer-events-none absolute inset-0 min-h-[100dvh] w-full overflow-visible",
         "[contain:layout]",
-        !tabVisible && "chakra-fog-paused",
+        animsPaused && "chakra-fog-paused",
       )}
       aria-hidden
     >
-      {/* Dual veil crossfade — avoids snapping gradient swap on begin / resume */}
+      {/* Aurora veil — fades in when practice starts, fades out and stops on idle */}
       <div className="pointer-events-none absolute inset-0 overflow-visible">
-        <div
-          className="pointer-events-none absolute inset-0 blur-[34px] saturate-[1.06] lg:blur-[26px] xl:blur-[22px]"
-          style={{
-            opacity: intense ? 0 : 1,
-            transition: `opacity ${VEIL_MS} ${VEIL_EASE}`,
-            ...idleCenterStyle,
-          }}
-        />
         <div
           className="pointer-events-none absolute inset-0 blur-[38px] sm:blur-[42px] saturate-[1.06] lg:blur-[30px] xl:blur-[26px]"
           style={{
@@ -193,9 +180,9 @@ export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
                     `chakra-fog-breath-${letter}`,
                     "transition-[width,height,opacity,filter,border-radius] duration-[2600ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
                     intense
-                      ? "h-[min(50vmin,400px)] w-[min(50vmin,400px)] opacity-[0.14] blur-[26px] sm:blur-[28px] lg:blur-[22px] xl:blur-[19px]"
-                      : "h-[min(15vmin,112px)] w-[min(15vmin,112px)] opacity-[0.058] blur-[18px] sm:blur-[22px] lg:blur-[18px]",
-                    tabVisible && "will-change-[transform,width,height,opacity]",
+                      ? "h-[min(48vmin,380px)] w-[min(48vmin,380px)] opacity-[0.16] blur-[26px] sm:blur-[28px] lg:blur-[22px] xl:blur-[19px]"
+                      : "h-[min(12vmin,88px)] w-[min(12vmin,88px)] opacity-0 blur-[18px] sm:blur-[22px] lg:blur-[18px]",
+                    intense && tabVisible && "will-change-[transform,width,height,opacity]",
                   )}
                   style={{
                     ...sparkBreathVars,

@@ -26,7 +26,7 @@ export function ChakraPracticeOrb({
   return (
     <div className="flex justify-center w-full min-w-0">
       <motion.div
-        className="relative aspect-square w-[min(92vw,20rem)] sm:w-[min(85vw,22rem)] md:w-[min(62vw,26rem)] lg:w-[min(52vw,28rem)] xl:w-[min(44vw,32rem)]"
+        className="relative aspect-square w-[min(78vw,17rem)] sm:w-[min(82vw,20rem)] md:w-[min(62vw,26rem)] lg:w-[min(52vw,28rem)] xl:w-[min(44vw,32rem)]"
         animate={running ? { scale: [1, 1.012, 1] } : { scale: 1 }}
         transition={{
           duration: 10,

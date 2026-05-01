@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { cn } from "@/lib/cn";
 
 type PathSummaryAsideProps = {
   streak: number;
@@ -6,6 +7,8 @@ type PathSummaryAsideProps = {
   week: number;
   totalWeeks: number;
   programProgressPct: number;
+  /** Render without the outer glass card (e.g. when nested inside another container). */
+  bare?: boolean;
 };
 
 function JourneyRing({ pct }: { pct: number }) {
@@ -59,26 +62,38 @@ export function PathSummaryAside({
   week,
   totalWeeks,
   programProgressPct,
+  bare = false,
 }: PathSummaryAsideProps) {
-  return (
-    <div className="glass rounded-2xl p-5 md:p-6 border border-white/[0.07] shadow-glow-soft">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted mb-2">The path</p>
-      <h2 className="text-lg font-semibold text-ink-primary leading-snug tracking-tight">
-        Six weeks · <span className="text-gradient">One threshold</span>
-      </h2>
-      <p className="text-sm text-ink-secondary mt-3 leading-relaxed">
-        Small weekly practices—steady attention until recall and lucidity come easier.
-      </p>
+  const body = (
+    <>
+      {!bare && (
+        <>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-muted mb-2">The path</p>
+          <h2 className="text-lg font-semibold text-ink-primary leading-snug tracking-tight">
+            Six weeks · <span className="text-gradient">One threshold</span>
+          </h2>
+          <p className="text-sm text-ink-secondary mt-3 leading-relaxed">
+            Small weekly practices—steady attention until recall and lucidity come easier.
+          </p>
+        </>
+      )}
 
-      <div className="mt-6 space-y-3">
+      <div className={bare ? "space-y-3" : "mt-6 space-y-3"}>
         <StatRow label="Streak" value={streak} suffix="days" />
         <StatRow label="Lucid dreams" value={lucid} suffix="total" />
         <StatRow label="Active week" value={week} suffix={`of ${totalWeeks}`} />
       </div>
 
-      <div className="mt-7 pt-6 border-t border-white/[0.06]">
+      <div className={cn(bare ? "mt-5 pt-5" : "mt-7 pt-6", "border-t border-white/[0.06]")}>
         <JourneyRing pct={programProgressPct} />
       </div>
+    </>
+  );
+
+  if (bare) return body;
+  return (
+    <div className="glass rounded-2xl p-5 md:p-6 border border-white/[0.07] shadow-glow-soft">
+      {body}
     </div>
   );
 }
