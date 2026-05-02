@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/Button";
@@ -19,10 +18,6 @@ function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-function getChakraAmbientMountEl(): HTMLElement | null {
-  return document.getElementById("chakra-ambient-root");
 }
 
 export default function ChakraSessionPage() {
@@ -149,23 +144,8 @@ export default function ChakraSessionPage() {
         ? "Elapsed"
         : "Elapsed";
 
-  const ambientMount =
-    typeof document !== "undefined" ? getChakraAmbientMountEl() : null;
-  const ambientPortal =
-    ambientMount &&
-    createPortal(
-      <ChakraPracticeClouds
-        key={`chakra-ambient-${c.id}`}
-        accent={c.color}
-        seedKey={c.id}
-        intense={phase === "running"}
-      />,
-      ambientMount,
-    );
-
   return (
     <>
-      {ambientPortal}
       <div className="relative z-[2] w-full flex flex-col flex-1 min-h-0 md:items-center">
       {/* Mobile: icon strip (rail lives in AppShell on md+) */}
       <nav
@@ -203,134 +183,115 @@ export default function ChakraSessionPage() {
         ))}
       </nav>
 
-      {/* Grid locks vertical rhythm: orb stays centered in flex row; controls slot has fixed height so Begin/Cancel swaps don't jump layout */}
-      <div className="relative z-[3] grid min-h-0 w-full min-w-0 max-w-none flex-1 grid-rows-[auto_auto_auto_auto] md:grid-rows-[auto_auto_minmax(0,1fr)_minmax(296px,296px)] lg:grid-rows-[auto_auto_minmax(0,1fr)_minmax(304px,304px)] gap-y-5 md:gap-y-10 lg:gap-y-12 px-3 sm:px-4 md:max-w-[min(52rem,calc(100vw-18rem))] lg:max-w-[min(56rem,calc(100vw-22rem))] lg:px-10 xl:px-12 pb-8 md:pb-12 lg:pb-14">
-        <div className="text-center shrink-0">
-          <p className="text-[11px] md:text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted">
-            Practice
-          </p>
-          <p className="mt-3 md:mt-4 text-base md:text-lg lg:text-xl text-ink-secondary leading-snug md:max-w-2xl lg:max-w-3xl mx-auto">
-            {c.theme}
-          </p>
-        </div>
-
-        <div className="relative z-[50] flex shrink-0 justify-center gap-3 flex-wrap pointer-events-auto">
+      {/* Compact vertical flow that fits within viewport height: kind toggle → orb (click to begin) → mantra + controls */}
+      <div className="relative z-[3] flex min-h-0 w-full min-w-0 max-w-none flex-1 flex-col items-center justify-between gap-y-3 md:gap-y-4 px-3 sm:px-4 md:max-w-[min(52rem,calc(100vw-18rem))] lg:max-w-[min(56rem,calc(100vw-22rem))] lg:px-10 xl:px-12 pb-6 md:pb-8 lg:pb-10">
+        <div className="relative z-[50] flex shrink-0 justify-center gap-2 flex-wrap pointer-events-auto">
           <button
             type="button"
             onClick={() => handleKindSwitch("timed")}
             className={cn(
-              "relative px-4 py-2 rounded-full border text-xs md:text-sm font-medium transition-colors scroll-mt-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50",
+              "relative px-3.5 py-1.5 rounded-full border text-[11px] md:text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50",
               kind === "timed"
                 ? "border-accent-lavender bg-accent-lavender/15 text-ink-primary"
                 : "border-white/14 bg-white/[0.06] text-white/[0.82] hover:border-white/24 hover:bg-white/[0.09] hover:text-white",
             )}
           >
-            Timed goal
+            Timed
           </button>
           <button
             type="button"
             onClick={() => handleKindSwitch("free")}
             className={cn(
-              "relative px-4 py-2 rounded-full border text-xs md:text-sm font-medium transition-colors scroll-mt-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50",
+              "relative px-3.5 py-1.5 rounded-full border text-[11px] md:text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50",
               kind === "free"
                 ? "border-accent-lavender bg-accent-lavender/15 text-ink-primary"
                 : "border-white/14 bg-white/[0.06] text-white/[0.82] hover:border-white/24 hover:bg-white/[0.09] hover:text-white",
             )}
           >
-            Open session
+            Open
           </button>
-        </div>
 
-        <div className="relative z-[10] flex min-h-0 flex-col items-center justify-center gap-6 md:gap-10 lg:gap-12 overflow-visible py-4 md:py-10 lg:py-12 pointer-events-none [&>*]:pointer-events-auto">
-          <ChakraPracticeOrb
-            chakraId={c.id}
-            accent={c.color}
-            phase={phase}
-            orbDigits={orbDigits}
-            caption={orbCaption}
-          />
-
-          <p className="md:hidden text-center text-[11px] text-ink-secondary px-3 italic leading-relaxed">
-            {c.mantra}
-            <span className="not-italic text-ink-muted"> · {c.frequency_hz} Hz</span>
-          </p>
-        </div>
-
-        <div className="relative z-[40] flex min-h-0 w-full flex-col items-center justify-center overflow-x-hidden overflow-y-visible px-1 py-2 pointer-events-auto">
           {phase === "idle" && kind === "timed" && (
-            <div className="flex w-full max-w-lg flex-col items-center justify-center text-center">
-              <p className="text-[11px] font-medium text-ink-muted mb-4 md:mb-5">
-                Choose a length
-              </p>
-              <div className="flex justify-center gap-3 md:gap-3 flex-wrap">
-                {PRESET_MINUTES.map((m) => (
-                  <button
-                    key={m}
-                    type="button"
-                    onClick={() => setTargetSeconds(m * 60)}
-                    className={cn(
-                      "relative px-4 py-2 rounded-full border text-xs md:text-sm font-medium transition-colors scroll-mt-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50",
-                      targetSeconds === m * 60
-                        ? "border-accent-lavender bg-accent-lavender/10 text-ink-primary"
-                        : "border-white/14 bg-white/[0.06] text-white/[0.82] hover:border-white/28 hover:bg-white/[0.09] hover:text-white",
-                    )}
-                  >
-                    {m} min
-                  </button>
-                ))}
-              </div>
-              <Button
-                onClick={() => {
-                  resetSession();
-                  setElapsed(0);
-                  setPhase("running");
-                }}
-                className="mt-8 md:mt-9 px-10 py-3"
-              >
-                Begin
-              </Button>
+            <div className="ml-2 flex items-center gap-1.5 pl-2 border-l border-white/10">
+              {PRESET_MINUTES.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setTargetSeconds(m * 60)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full border text-[11px] md:text-xs font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50",
+                    targetSeconds === m * 60
+                      ? "border-accent-lavender bg-accent-lavender/10 text-ink-primary"
+                      : "border-white/10 bg-white/[0.04] text-white/[0.78] hover:border-white/24 hover:text-white",
+                  )}
+                >
+                  {m}m
+                </button>
+              ))}
             </div>
           )}
+        </div>
 
-          {phase === "idle" && kind === "free" && (
-            <div className="flex w-full max-w-xl flex-col items-center justify-center text-center">
-              <p className="text-xs md:text-sm lg:text-base text-ink-secondary leading-relaxed mb-6 md:mb-8 max-w-xl mx-auto">
-                Timer counts up. Stop when you finish — the session saves automatically.
-              </p>
-              <Button
-                onClick={() => {
-                  resetSession();
-                  setElapsed(0);
-                  setPhase("running");
-                }}
-                className="px-10 py-3"
-              >
-                Start session
-              </Button>
-            </div>
-          )}
+        <div className="relative z-[10] flex w-full flex-1 min-h-0 flex-col items-center justify-center overflow-visible pointer-events-none [&>*]:pointer-events-auto">
+          <div className="relative flex items-center justify-center">
+            {/* Clouds anchored to orb center — covers the orb with surrounding ambient halo */}
+            <ChakraPracticeClouds
+              key={`chakra-ambient-${c.id}`}
+              accent={c.color}
+              seedKey={c.id}
+              intense={phase === "running"}
+            />
+            <ChakraPracticeOrb
+              chakraId={c.id}
+              accent={c.color}
+              phase={phase}
+              orbDigits={orbDigits}
+              caption={orbCaption}
+              onActivate={
+                phase === "idle"
+                  ? () => {
+                      resetSession();
+                      setElapsed(0);
+                      setPhase("running");
+                    }
+                  : undefined
+              }
+              activateLabel={kind === "timed" ? "tap to begin" : "tap to start"}
+            />
+          </div>
+        </div>
+
+        <div className="relative z-[40] flex w-full flex-col items-center gap-2 md:gap-2.5 shrink-0 pointer-events-auto">
+          <p className="text-center text-[12px] md:text-[13px] text-ink-secondary italic leading-snug">
+            {c.mantra}
+            <span className="not-italic text-ink-muted">
+              {" "}· {c.frequency_hz} Hz
+            </span>
+          </p>
 
           {phase === "running" && kind === "timed" && (
-            <div className="flex justify-center gap-3 flex-wrap">
-              <Button variant="outline" onClick={() => setPhase("paused")}>
+            <div className="flex justify-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={() => setPhase("paused")}>
                 Pause
               </Button>
-              <Button variant="ghost" onClick={abandon}>
+              <Button variant="ghost" size="sm" onClick={abandon}>
                 Cancel
               </Button>
             </div>
           )}
 
           {phase === "running" && kind === "free" && (
-            <div className="flex flex-col items-center gap-3">
-              <Button onClick={submitFreeSession} loading={save.isPending}>
-                Save session
-              </Button>
-              <Button variant="ghost" onClick={abandon}>
-                Discard
-              </Button>
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex justify-center gap-2 flex-wrap">
+                <Button size="sm" onClick={submitFreeSession} loading={save.isPending}>
+                  Save
+                </Button>
+                <Button variant="ghost" size="sm" onClick={abandon}>
+                  Discard
+                </Button>
+              </div>
               {save.isError && (
-                <p className="text-xs text-accent-rose max-w-sm text-center">
+                <p className="text-[11px] text-accent-rose max-w-sm text-center">
                   {extractMessage(save.error)}
                 </p>
               )}
@@ -338,9 +299,11 @@ export default function ChakraSessionPage() {
           )}
 
           {phase === "paused" && (
-            <div className="flex justify-center gap-3 flex-wrap">
-              <Button onClick={() => setPhase("running")}>Resume</Button>
-              <Button variant="ghost" onClick={abandon}>
+            <div className="flex justify-center gap-2 flex-wrap">
+              <Button size="sm" onClick={() => setPhase("running")}>
+                Resume
+              </Button>
+              <Button variant="ghost" size="sm" onClick={abandon}>
                 Cancel
               </Button>
             </div>

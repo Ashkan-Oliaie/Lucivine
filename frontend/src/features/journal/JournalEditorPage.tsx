@@ -2,9 +2,9 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/Toast";
 import {
   createDream,
   deleteDream,
@@ -17,9 +17,20 @@ import { cn } from "@/lib/cn";
 import { PRESET_EMOTIONS } from "@/lib/journalEmotions";
 
 const TECHNIQUES: Technique[] = ["DILD", "WILD", "MILD", "WBTB", "SSILD", "other"];
+const PRESET_EMOTION_SET: ReadonlySet<string> = new Set(PRESET_EMOTIONS);
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function formatDateLong(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 }
 
 type FormState = {
@@ -53,8 +64,9 @@ export default function JournalEditorPage() {
   const isNew = !id || id === "new";
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const toast = useToast();
 
-  const { data: existing } = useQuery({
+  const { data: existing, isLoading: loadingEntry } = useQuery({
     queryKey: ["dream", id],
     queryFn: () => fetchDream(id!),
     enabled: !isNew,
@@ -62,6 +74,7 @@ export default function JournalEditorPage() {
 
   const [form, setForm] = useState<FormState>(EMPTY);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (existing) {
@@ -87,9 +100,17 @@ export default function JournalEditorPage() {
       qc.invalidateQueries({ queryKey: ["journal"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       qc.invalidateQueries({ queryKey: ["dream", saved.id] });
-      navigate(`/journal/${saved.id}`, { replace: true });
+      toast.success({
+        title: isNew ? "Dream inscribed" : "Entry updated",
+        description: saved.title || "Your recall has been saved.",
+      });
+      navigate("/journal");
     },
-    onError: (err) => setError(extractMessage(err)),
+    onError: (err) => {
+      const msg = extractMessage(err);
+      setError(msg);
+      toast.error({ title: "Could not save", description: msg });
+    },
   });
 
   const remove = useMutation({
@@ -97,14 +118,25 @@ export default function JournalEditorPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["journal"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success({ title: "Entry released" });
       navigate("/journal", { replace: true });
     },
+    onError: (err) =>
+      toast.error({
+        title: "Could not delete",
+        description: extractMessage(err),
+      }),
   });
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    const payload: Partial<DreamEntry> = { ...form };
+    if (!form.title.trim()) {
+      setError("Give this dream a title.");
+      toast.error({ title: "Title is required" });
+      return;
+    }
+    const payload: Partial<DreamEntry> = { ...form, title: form.title.trim() };
     if (!form.is_lucid) {
       payload.lucidity_duration_seconds = null;
       payload.technique_used = "";
@@ -131,62 +163,93 @@ export default function JournalEditorPage() {
     }));
   }
 
+  const saving = save.isPending;
+  const deleting = remove.isPending;
+
+  if (!isNew && loadingEntry) {
+    return (
+      <div className="max-w-2xl mx-auto py-20 text-center">
+        <p className="ritual-eyebrow mb-3">Recalling</p>
+        <p className="italic text-ink-secondary">Listening to the entry…</p>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-2xl mx-auto pb-24 md:pb-10"
+      className="max-w-3xl mx-auto pb-32 md:pb-12"
     >
-      <div className="flex items-center justify-between mb-5">
-        <p className="ritual-eyebrow">{isNew ? "New entry" : "Entry"}</p>
-        <p className="text-[11px] text-ink-muted tabular-nums">
-          {form.dream_date}
-        </p>
-      </div>
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="ritual-eyebrow">{isNew ? "New entry" : "Editing"}</p>
+          <h1 className="mt-2 text-2xl md:text-3xl font-light text-ink-primary leading-tight">
+            {isNew ? (
+              <>Inscribe what the <em className="text-accent-lavender">night</em> revealed</>
+            ) : (
+              <>Refine the <em className="text-accent-lavender">memory</em></>
+            )}
+          </h1>
+          <p className="mt-1 text-sm text-ink-muted">
+            {formatDateLong(form.dream_date)}
+          </p>
+        </div>
+      </header>
 
-      <form onSubmit={onSubmit} className="space-y-7 md:space-y-9">
-        <div>
+      <form onSubmit={onSubmit} className="space-y-6">
+        <Section>
           <input
             required
             autoFocus={isNew}
             placeholder="Title this dream…"
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            className="w-full bg-transparent border-b border-white/10 pb-3 text-2xl md:text-4xl font-semibold tracking-tight text-ink-primary placeholder:text-ink-muted/50 placeholder:font-normal focus:outline-none focus:border-accent-lavender/50 transition-colors"
+            className="w-full bg-transparent border-b border-white/10 pb-3 text-2xl md:text-3xl font-semibold tracking-tight text-ink-primary placeholder:text-ink-muted/50 placeholder:font-normal focus:outline-none focus:border-accent-lavender/60 transition-colors"
           />
-        </div>
 
-        <FieldLabel>When</FieldLabel>
-        <Input
-          type="date"
-          value={form.dream_date}
-          onChange={(e) => setForm({ ...form, dream_date: e.target.value })}
-          className="-mt-5"
-        />
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-3 sm:gap-5 sm:items-center">
+            <FieldLabel className="!mb-0 sm:pt-2">Date</FieldLabel>
+            <input
+              type="date"
+              value={form.dream_date}
+              onChange={(e) => setForm({ ...form, dream_date: e.target.value })}
+              className="w-full sm:w-auto bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm text-ink-primary focus:outline-none focus:border-accent-lavender/60 focus:bg-white/[0.05] transition-colors"
+            />
+          </div>
+        </Section>
 
-        <div>
-          <FieldLabel>Recall</FieldLabel>
+        <Section>
+          <div className="flex items-baseline justify-between mb-3">
+            <FieldLabel className="!mb-0">Recall</FieldLabel>
+            <span className="text-[11px] tabular-nums text-ink-muted">
+              {form.content.length} chars
+            </span>
+          </div>
           <textarea
             placeholder="Write before it dissolves…"
             value={form.content}
             onChange={(e) => setForm({ ...form, content: e.target.value })}
             rows={9}
-            className="w-full bg-white/[0.025] border border-white/10 rounded-xl px-4 py-3.5 md:px-5 md:py-4 text-[15px] md:text-base text-ink-primary placeholder:text-ink-muted/55 leading-relaxed focus:outline-none focus:border-accent-lavender/60 focus:bg-white/[0.04] transition-colors resize-y min-h-[180px]"
+            className="w-full bg-white/[0.025] border border-white/10 rounded-xl px-4 py-3.5 md:px-5 md:py-4 text-[15px] md:text-base text-ink-primary placeholder:text-ink-muted/55 leading-relaxed focus:outline-none focus:border-accent-lavender/60 focus:bg-white/[0.04] transition-colors resize-y min-h-[200px]"
           />
-        </div>
+        </Section>
 
-        <Card className="!p-5 md:!p-6">
-          <label className="flex items-center gap-3 cursor-pointer select-none">
-            <input
-              type="checkbox"
+        <Section>
+          <label className="flex items-center justify-between gap-4 cursor-pointer select-none">
+            <div className="min-w-0">
+              <p className="text-base md:text-lg font-medium text-ink-primary">
+                I became lucid
+              </p>
+              <p className="mt-0.5 text-[13px] text-ink-muted">
+                Mark this entry as a lucid dream to capture technique & stages.
+              </p>
+            </div>
+            <ToggleSwitch
               checked={form.is_lucid}
-              onChange={(e) => setForm({ ...form, is_lucid: e.target.checked })}
-              className="w-5 h-5 accent-accent-amethyst"
+              onChange={(v) => setForm({ ...form, is_lucid: v })}
             />
-            <span className="text-base md:text-lg font-medium text-ink-primary">
-              I became lucid
-            </span>
           </label>
 
           <AnimatePresence initial={false}>
@@ -198,7 +261,7 @@ export default function JournalEditorPage() {
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                 className="overflow-hidden"
               >
-                <div className="mt-5 md:mt-6 space-y-5 md:space-y-6 pl-4 md:pl-6 border-l-2 border-accent-amethyst/30">
+                <div className="mt-6 space-y-6 pl-4 md:pl-5 border-l-2 border-accent-amethyst/30">
                   <div>
                     <FieldLabel>Technique</FieldLabel>
                     <div className="flex flex-wrap gap-2">
@@ -224,7 +287,8 @@ export default function JournalEditorPage() {
                     <div className="flex items-baseline justify-between mb-2">
                       <FieldLabel className="!mb-0">Vividness</FieldLabel>
                       <span className="text-sm tabular-nums text-ink-primary">
-                        {form.vividness}<span className="text-ink-muted">/10</span>
+                        {form.vividness}
+                        <span className="text-ink-muted">/10</span>
                       </span>
                     </div>
                     <input
@@ -237,6 +301,10 @@ export default function JournalEditorPage() {
                       }
                       className="w-full accent-accent-amethyst"
                     />
+                    <div className="mt-1 flex justify-between text-[10px] uppercase tracking-wider text-ink-muted">
+                      <span>faint</span>
+                      <span>vivid</span>
+                    </div>
                   </div>
 
                   <div>
@@ -247,6 +315,7 @@ export default function JournalEditorPage() {
                           key={s}
                           type="button"
                           onClick={() => toggleStage(s)}
+                          aria-pressed={form.transition_stages_reached.includes(s)}
                           className={cn(
                             "aspect-square rounded-full border text-sm font-medium tabular-nums transition-colors",
                             form.transition_stages_reached.includes(s)
@@ -263,16 +332,17 @@ export default function JournalEditorPage() {
               </motion.div>
             )}
           </AnimatePresence>
-        </Card>
+        </Section>
 
-        <div>
+        <Section>
           <FieldLabel>Emotions</FieldLabel>
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-4">
             {PRESET_EMOTIONS.map((em) => (
               <button
                 key={em}
                 type="button"
                 onClick={() => togglePresetEmotion(em)}
+                aria-pressed={form.emotions.includes(em)}
                 className={cn(
                   "px-3 py-1.5 rounded-full border text-xs font-medium transition-colors",
                   form.emotions.includes(em)
@@ -286,16 +356,26 @@ export default function JournalEditorPage() {
           </div>
           <ChipInput
             label="Custom feelings"
-            values={form.emotions}
-            onChange={(v) => setForm({ ...form, emotions: v })}
+            values={form.emotions.filter((e) => !PRESET_EMOTION_SET.has(e))}
+            onChange={(custom) =>
+              setForm({
+                ...form,
+                emotions: [
+                  ...form.emotions.filter((e) => PRESET_EMOTION_SET.has(e)),
+                  ...custom,
+                ],
+              })
+            }
           />
-        </div>
+        </Section>
 
-        <ChipInput
-          label="Symbols"
-          values={form.symbols}
-          onChange={(v) => setForm({ ...form, symbols: v })}
-        />
+        <Section>
+          <ChipInput
+            label="Symbols"
+            values={form.symbols}
+            onChange={(v) => setForm({ ...form, symbols: v })}
+          />
+        </Section>
 
         {error && (
           <p className="text-sm text-accent-rose bg-accent-rose/[0.06] border border-accent-rose/20 rounded-lg px-4 py-2.5">
@@ -303,14 +383,13 @@ export default function JournalEditorPage() {
           </p>
         )}
 
-        <div className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.06] bg-void/85 backdrop-blur-md px-4 py-3 flex items-center gap-3">
+        <div className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.06] bg-void/90 backdrop-blur-md px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-3 flex items-center gap-3">
           {!isNew && (
             <button
               type="button"
-              onClick={() => {
-                if (confirm("Delete this dream entry?")) remove.mutate();
-              }}
-              className="text-xs font-medium text-accent-rose px-2 py-2"
+              disabled={deleting}
+              onClick={() => setConfirmDelete(true)}
+              className="text-xs font-medium text-accent-rose px-2 py-2 disabled:opacity-50"
             >
               Delete
             </button>
@@ -321,10 +400,11 @@ export default function JournalEditorPage() {
               variant="ghost"
               size="sm"
               onClick={() => navigate("/journal")}
+              disabled={saving}
             >
-              Back
+              Cancel
             </Button>
-            <Button type="submit" size="sm" loading={save.isPending}>
+            <Button type="submit" size="sm" loading={saving}>
               {isNew ? "Inscribe" : "Save"}
             </Button>
           </div>
@@ -334,10 +414,9 @@ export default function JournalEditorPage() {
           {!isNew ? (
             <button
               type="button"
-              onClick={() => {
-                if (confirm("Delete this dream entry?")) remove.mutate();
-              }}
-              className="text-xs font-medium uppercase tracking-wider text-accent-rose hover:underline"
+              disabled={deleting}
+              onClick={() => setConfirmDelete(true)}
+              className="text-xs font-medium uppercase tracking-wider text-accent-rose hover:underline disabled:opacity-50"
             >
               Delete entry
             </button>
@@ -349,16 +428,69 @@ export default function JournalEditorPage() {
               type="button"
               variant="ghost"
               onClick={() => navigate("/journal")}
+              disabled={saving}
             >
-              Back
+              Cancel
             </Button>
-            <Button type="submit" loading={save.isPending}>
+            <Button type="submit" loading={saving}>
               {isNew ? "Inscribe" : "Save"}
             </Button>
           </div>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          remove.mutate();
+        }}
+        title="Release this dream?"
+        description="The entry will be permanently removed from your journal."
+        confirmLabel="Delete"
+        loading={deleting}
+        tone="danger"
+      />
     </motion.div>
+  );
+}
+
+function Section({ children }: { children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-white/[0.06] bg-white/[0.015] p-5 md:p-6 transition-colors hover:border-white/[0.1]">
+      {children}
+    </section>
+  );
+}
+
+function ToggleSwitch({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors",
+        checked
+          ? "border-accent-lavender/60 bg-accent-amethyst/40"
+          : "border-white/10 bg-white/[0.04]",
+      )}
+    >
+      <span
+        className={cn(
+          "inline-block h-5 w-5 rounded-full bg-ink-primary shadow-[0_2px_8px_rgba(0,0,0,0.4)] transition-transform",
+          checked ? "translate-x-6" : "translate-x-1",
+        )}
+      />
+    </button>
   );
 }
 
@@ -401,21 +533,27 @@ function ChipInput({
 
   return (
     <div>
-      <span className="font-mono uppercase tracking-ritual text-[10px] text-ink-secondary mb-2 block">
-        {label}
-      </span>
-      <div className="flex flex-wrap gap-2 mb-2">
-        {values.map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(values.filter((x) => x !== v))}
-            className="px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-sm text-ink-primary hover:border-accent-rose/40"
-          >
-            {v} ×
-          </button>
-        ))}
-      </div>
+      <FieldLabel>{label}</FieldLabel>
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {values.map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => onChange(values.filter((x) => x !== v))}
+              className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-sm text-ink-primary hover:border-accent-rose/40 hover:bg-accent-rose/[0.06] transition-colors"
+            >
+              <span>{v}</span>
+              <span
+                aria-hidden
+                className="text-ink-muted group-hover:text-accent-rose"
+              >
+                ×
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex gap-2">
         <input
           value={input}
@@ -429,7 +567,12 @@ function ChipInput({
           placeholder={`Add ${label.toLowerCase()}…`}
           className="flex-1 bg-white/[0.03] border border-white/10 rounded-md px-4 py-2 text-ink-primary placeholder:text-ink-muted/60 focus:outline-none focus:border-accent-lavender/60"
         />
-        <Button type="button" variant="outline" onClick={add}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={add}
+          disabled={!input.trim()}
+        >
           Add
         </Button>
       </div>

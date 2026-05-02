@@ -64,13 +64,13 @@ export function Modal({ open, onClose, title, eyebrow, children, size = "md" }: 
                 <div className="px-6 pt-6 pb-4 border-b border-white/5 shrink-0">
                   {eyebrow && <p className="ritual-eyebrow mb-2">{eyebrow}</p>}
                   {title && (
-                    <h2 className="text-2xl md:text-3xl text-ink-primary">
+                    <h2 className="font-sans text-2xl md:text-3xl font-light tracking-tight text-ink-primary leading-tight">
                       {title}
                     </h2>
                   )}
                 </div>
               )}
-              <div className="overflow-y-auto px-6 py-6">{children}</div>
+              <div className="overflow-y-auto px-6 py-6 font-sans">{children}</div>
             </div>
           </motion.div>
         </div>

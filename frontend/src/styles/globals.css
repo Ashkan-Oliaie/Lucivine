@@ -102,143 +102,91 @@ html[data-chakra-route] body::before {
   filter: saturate(1.08);
 }
 
-/* Chakra practice fog — orbit arm rotates + pushes radius; counter rotates opposite so sparks stay upright */
-@keyframes chakraFogOrbitArm {
-  from {
-    transform: rotate(0deg) translateX(var(--orbit-r));
+/* Chakra practice aurora — unified veil layers that breathe + slowly rotate.
+   Idle ↔ running just transitions size/opacity; underlying keyframes never reset. */
+
+@keyframes auroraRotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Breath = scale + slight squash so the veil pulses irregularly like real aurora */
+@keyframes auroraBreath {
+  0%, 100% {
+    transform: scale3d(1, 1, 1);
   }
-  to {
-    transform: rotate(360deg) translateX(var(--orbit-r));
+  28% {
+    transform: scale3d(1.08, 0.94, 1);
+  }
+  52% {
+    transform: scale3d(0.95, 1.07, 1);
+  }
+  78% {
+    transform: scale3d(1.04, 0.97, 1);
   }
 }
 
-@keyframes chakraFogOrbitCounter {
-  from {
-    transform: rotate(0deg);
+/* Morph = irregular border-radius shape change so the wisp wanders organically */
+@keyframes auroraMorph {
+  0%, 100% {
+    border-radius: 56% 44% 60% 40% / 50% 60% 40% 50%;
+    transform: scale3d(1, 1, 1);
   }
-  to {
-    transform: rotate(-360deg);
-  }
-}
-
-@keyframes chakraFogBreathA {
-  0%,
-  100% {
-    transform: scale3d(0.86, 1.14, 1);
-  }
-  32% {
-    transform: scale3d(1.1, 0.88, 1);
-  }
-  64% {
-    transform: scale3d(0.92, 1.07, 1);
-  }
-}
-
-@keyframes chakraFogBreathB {
-  0%,
-  100% {
-    transform: scale3d(1.09, 0.87, 1);
-  }
-  38% {
-    transform: scale3d(0.87, 1.11, 1);
-  }
-}
-
-@keyframes chakraFogBreathC {
-  0%,
-  100% {
-    transform: scale3d(1.06, 1.06, 1);
+  25% {
+    border-radius: 40% 60% 48% 52% / 60% 38% 62% 40%;
+    transform: scale3d(1.06, 0.92, 1);
   }
   50% {
-    transform: scale3d(0.84, 0.91, 1);
+    border-radius: 62% 38% 52% 48% / 42% 58% 44% 56%;
+    transform: scale3d(0.92, 1.08, 1);
+  }
+  75% {
+    border-radius: 46% 54% 40% 60% / 56% 44% 60% 40%;
+    transform: scale3d(1.04, 0.98, 1);
   }
 }
 
-@keyframes chakraFogBreathD {
-  0%,
-  100% {
-    transform: scale3d(0.91, 1.09, 1) rotate(-6deg);
-  }
-  34% {
-    transform: scale3d(1.11, 0.85, 1) rotate(5deg);
-  }
-  68% {
-    transform: scale3d(0.88, 1.05, 1) rotate(-4deg);
-  }
-}
-
-.chakra-fog-orbit-arm {
-  animation-name: chakraFogOrbitArm;
-  animation-duration: var(--orbit-dur, 72s);
+.aurora-rotate {
+  animation-name: auroraRotate;
+  animation-duration: var(--rot-dur, 120s);
+  animation-delay: var(--rot-delay, 0s);
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  animation-delay: var(--orbit-delay, 0s);
-}
-
-.chakra-fog-orbit-counter {
-  animation-name: chakraFogOrbitCounter;
-  animation-duration: var(--orbit-dur, 72s);
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  animation-delay: var(--orbit-delay, 0s);
-}
-
-.chakra-fog-spark.chakra-fog-breath {
   transform-origin: 50% 50%;
+  /* Layer rotate + breath together by composing animations — set both names on element */
 }
 
-.chakra-fog-breath-a {
-  animation-name: chakraFogBreathA;
-  animation-duration: var(--breath-dur, 17s);
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-delay: var(--breath-delay, 0s);
+.aurora-breath {
+  animation-name: auroraRotate, auroraBreath;
+  animation-duration: var(--rot-dur, 120s), var(--breath-dur, 14s);
+  animation-delay: var(--rot-delay, 0s), var(--breath-delay, 0s);
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 
-.chakra-fog-breath-b {
-  animation-name: chakraFogBreathB;
-  animation-duration: var(--breath-dur, 15s);
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-delay: var(--breath-delay, 0s);
+.aurora-morph {
+  animation-name: auroraRotate, auroraMorph;
+  animation-duration: var(--rot-dur, 38s), var(--morph-dur, 26s);
+  animation-delay: var(--rot-delay, 0s), var(--morph-delay, 0s);
+  animation-timing-function: linear, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  transform-origin: 50% 50%;
+  will-change: transform, border-radius;
 }
 
-.chakra-fog-breath-c {
-  animation-name: chakraFogBreathC;
-  animation-duration: var(--breath-dur, 19s);
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-delay: var(--breath-delay, 0s);
-}
-
-.chakra-fog-breath-d {
-  animation-name: chakraFogBreathD;
-  animation-duration: var(--breath-dur, 16s);
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-delay: var(--breath-delay, 0s);
-}
-
-.chakra-fog-paused .chakra-fog-orbit-arm,
-.chakra-fog-paused .chakra-fog-orbit-counter,
-.chakra-fog-paused .chakra-fog-spark {
+.aurora-paused .aurora-rotate,
+.aurora-paused .aurora-breath,
+.aurora-paused .aurora-morph {
   animation-play-state: paused !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chakra-fog-orbit-arm {
+  .aurora-rotate,
+  .aurora-breath,
+  .aurora-morph {
     animation: none !important;
-    transform: rotate(var(--orbit-angle-frozen, 0deg)) translateX(var(--orbit-r));
-  }
-
-  .chakra-fog-orbit-counter {
-    animation: none !important;
-    transform: rotate(calc(-1 * var(--orbit-angle-frozen, 0deg)));
-  }
-
-  .chakra-fog-spark.chakra-fog-breath {
-    animation: none !important;
-    transform: scale3d(1, 1, 1);
   }
 }
 

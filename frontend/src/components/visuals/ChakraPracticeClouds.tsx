@@ -5,9 +5,9 @@ import { useDocumentVisible } from "@/hooks/useDocumentVisible";
 
 type Props = {
   accent?: string;
-  /** Stable seed for pseudo-random blob placement per chakra */
+  /** Stable seed so each chakra gets unique aurora hot-spots & morph timings */
   seedKey?: string;
-  /** Practice running — fog spreads & wanders more chaotically */
+  /** Practice running — aurora expands outward and intensifies */
   intense?: boolean;
 };
 
@@ -20,181 +20,196 @@ function hashString(s: string): number {
   return Math.abs(h);
 }
 
-/** Deterministic 0..1 from seed index */
 function rnd(seed: number, i: number): number {
-  const x = Math.sin(seed * 0.001127 + i * 78.233 + seed % 9973) * 10000;
+  const x = Math.sin(seed * 0.001127 + i * 78.233 + (seed % 9973)) * 10000;
   return x - Math.floor(x);
 }
 
-/** Orbital radius: vmin scales badly on ultrawide — clamp with a seeded px ceiling */
-function orbitRadiusCss(seed: number, blobIndex: number): string {
-  const vminShare = 8 + rnd(seed, blobIndex * 41 + 3) * 13;
-  const pxCap = 148 + rnd(seed, blobIndex * 89 + 13) * 108;
-  return `min(${vminShare.toFixed(2)}vmin, ${Math.round(pxCap)}px)`;
-}
-
-/** Organic silhouette — seeded supersellipse-ish radius so blobs aren't identical lumps */
-function blobRadiusCss(seed: number, blobIndex: number): string {
-  const a = 42 + rnd(seed, blobIndex * 101 + 17) * 18;
-  const b = 42 + rnd(seed, blobIndex * 103 + 19) * 18;
-  const c = 42 + rnd(seed, blobIndex * 107 + 23) * 18;
-  const d = 42 + rnd(seed, blobIndex * 109 + 29) * 18;
-  return `${a}% ${100 - a}% ${100 - b}% ${b}% / ${c}% ${d}% ${100 - d}% ${100 - c}%`;
-}
-
-/** Radial focal points vary per chakra so gradients don't mirror the same smear */
-function blobLayers(seed: number, idx: number, wash: string, secondary: string, tertiary: string): string {
-  const x1 = 34 + rnd(seed, idx * 2 + 1) * 32;
-  const y1 = 32 + rnd(seed, idx * 3 + 2) * 36;
-  const x2 = 34 + rnd(seed, idx * 5 + 3) * 32;
-  const y2 = 32 + rnd(seed, idx * 7 + 5) * 36;
-  switch (idx) {
-    case 1:
-      return `radial-gradient(circle at ${x1}% ${y1}%, ${wash}, transparent 61%), radial-gradient(circle at ${x2}% ${y2}%, ${secondary}, transparent 57%)`;
-    case 2:
-      return `radial-gradient(ellipse ${52 + rnd(seed, 11) * 30}% ${44 + rnd(seed, 13) * 28}% at ${42 + rnd(seed, 15) * 16}% ${46 + rnd(seed, 17) * 14}%, ${tertiary}, transparent 59%)`;
-    case 3:
-      return `radial-gradient(circle at ${x1}% ${y1}%, ${wash}, transparent 59%), radial-gradient(circle at ${100 - x2}% ${100 - y2}%, rgba(255,137,184,0.24), transparent 55%)`;
-    default:
-      return `radial-gradient(circle at ${x2}% ${y2}%, ${secondary}, transparent 58%), radial-gradient(ellipse ${56 + rnd(seed, 19) * 26}% ${48 + rnd(seed, 21) * 28}% at ${48 + rnd(seed, 23) * 12}% ${52 + rnd(seed, 25) * 12}%, ${tertiary}, transparent 57%)`;
-  }
-}
-
-/** Orbital timings — seeded per blob */
-function orbitParams(seed: number, blobIndex: number) {
-  const orbitDur = 56 + rnd(seed, blobIndex * 47 + 11) * 52;
-  const orbitDelay = -(rnd(seed, blobIndex * 53 + 17) * orbitDur);
-  const breathDur = 13 + rnd(seed, blobIndex * 59 + 19) * 14;
-  const breathDelay = -(rnd(seed, blobIndex * 61 + 23) * breathDur);
-  const frozenAngle = rnd(seed, blobIndex * 71 + 29) * 360;
-  return {
-    orbitDur,
-    orbitDelay,
-    breathDur,
-    breathDelay,
-    frozenAngle,
-  };
-}
-
-const VEIL_MS = "2600ms";
-const VEIL_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
-
 /**
- * Idle: nothing rendered — animations paused, opacity 0.
- * Running (intense): aurora-style spread veil fades in; sparks orbit + drift around the orb.
+ * Unified aurora cloud anchored behind the orb.
+ *
+ * The visual is composed from a few concentric, heavily-blurred discs whose radial
+ * gradients overlap to read as ONE continuous glowing cloud — not separate sparks.
+ * Each layer breathes + slowly rotates so gradient hot-spots drift across the orb,
+ * producing a morphing aurora.
+ *
+ * Idle ↔ running uses pure CSS transitions on size/opacity, so toggling never
+ * resets the underlying keyframe animations — they keep flowing through the change.
  */
 export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
   const tabVisible = useDocumentVisible();
-  const seed = useMemo(() => hashString(seedKey ?? accent ?? "chakra"), [seedKey, accent]);
-
-  const wash = accent ?? "rgba(72, 52, 140, 0.72)";
-  const secondary = accent ? `${accent}aa` : "rgba(140, 70, 110, 0.42)";
-  const tertiary = accent ? `${accent}77` : "rgba(70, 110, 160, 0.38)";
-
-  /* Ring around orb — lighter washes so sparks read as the main motion */
-  const spreadBaseStyle: CSSProperties = {
-    background: `
-      radial-gradient(ellipse 72% 62% at 50% 50%, rgba(124, 92, 255, 0.055), transparent 60%),
-      radial-gradient(ellipse 34% 30% at 50% 50%, ${wash}, transparent 60%),
-      radial-gradient(ellipse 44% 38% at 26% 56%, ${wash}, transparent 56%),
-      radial-gradient(ellipse 44% 38% at 74% 54%, ${secondary}, transparent 56%),
-      radial-gradient(ellipse 42% 36% at 50% 76%, ${tertiary}, transparent 54%),
-      radial-gradient(ellipse 38% 32% at 50% 26%, rgba(124, 92, 255, 0.035), transparent 56%),
-      radial-gradient(ellipse 34% 40% at 21% 42%, ${secondary}, transparent 54%),
-      radial-gradient(ellipse 34% 40% at 79% 44%, ${wash}, transparent 54%)
-    `,
-  };
-
-  /* Animations pause entirely when idle so they're "not constantly animating" */
-  const animsPaused = !intense || !tabVisible;
-
-  const blobs = useMemo(
-    () =>
-      [1, 2, 3, 4].map((i) => ({
-        i,
-        bg: blobLayers(seed, i, wash, secondary, tertiary),
-      })),
-    [seed, wash, secondary, tertiary],
+  const seed = useMemo(
+    () => hashString(seedKey ?? accent ?? "chakra"),
+    [seedKey, accent],
   );
+
+  const wash = accent ?? "rgba(124, 92, 255, 0.7)";
+  const secondary = accent ? `${accent}aa` : "rgba(255, 137, 184, 0.55)";
+  const tertiary = accent ? `${accent}66` : "rgba(125, 197, 255, 0.45)";
+  const faint = accent ? `${accent}33` : "rgba(124, 92, 255, 0.18)";
+
+  /* Seeded hot-spot positions so each chakra's aurora has unique highlights */
+  const spots = useMemo(() => {
+    return [0, 1, 2, 3].map((i) => ({
+      x1: 30 + rnd(seed, i * 7 + 3) * 40,
+      y1: 28 + rnd(seed, i * 11 + 5) * 44,
+      x2: 30 + rnd(seed, i * 13 + 7) * 40,
+      y2: 28 + rnd(seed, i * 17 + 11) * 44,
+      x3: 30 + rnd(seed, i * 19 + 13) * 40,
+      y3: 28 + rnd(seed, i * 23 + 17) * 44,
+    }));
+  }, [seed]);
+
+  /* Seeded animation timings so chakras don't pulse in lockstep */
+  const t = useMemo(() => {
+    return {
+      breathInner: 9 + rnd(seed, 41) * 4,
+      breathMid: 13 + rnd(seed, 43) * 5,
+      breathOuter: 17 + rnd(seed, 47) * 6,
+      rotInner: 60 + rnd(seed, 53) * 30,
+      rotMid: 110 + rnd(seed, 59) * 40,
+      rotOuter: 180 + rnd(seed, 61) * 60,
+      morph: 22 + rnd(seed, 67) * 10,
+      morphHue: 28 + rnd(seed, 71) * 12,
+      delayInner: -(rnd(seed, 73) * 30),
+      delayMid: -(rnd(seed, 79) * 40),
+      delayOuter: -(rnd(seed, 83) * 50),
+      rotInnerDir: rnd(seed, 87) > 0.5 ? 1 : -1,
+      rotMidDir: rnd(seed, 91) > 0.5 ? 1 : -1,
+      rotOuterDir: rnd(seed, 97) > 0.5 ? 1 : -1,
+    };
+  }, [seed]);
+
+  const animsPaused = !tabVisible;
+
+  /* Inner core veil — closest to orb, brightest, smallest */
+  const innerBg = `
+    radial-gradient(circle at ${spots[0].x1}% ${spots[0].y1}%, ${wash}, transparent 58%),
+    radial-gradient(circle at ${spots[0].x2}% ${spots[0].y2}%, ${secondary}, transparent 54%),
+    radial-gradient(ellipse 60% 50% at 50% 50%, ${tertiary}, transparent 64%)
+  `;
+
+  /* Mid veil — broader, softer, blends inner + outer */
+  const midBg = `
+    radial-gradient(ellipse 55% 45% at ${spots[1].x1}% ${spots[1].y1}%, ${wash}, transparent 60%),
+    radial-gradient(ellipse 50% 42% at ${spots[1].x2}% ${spots[1].y2}%, ${secondary}, transparent 58%),
+    radial-gradient(ellipse 48% 40% at ${spots[1].x3}% ${spots[1].y3}%, ${tertiary}, transparent 60%),
+    radial-gradient(circle at 50% 50%, ${faint}, transparent 70%)
+  `;
+
+  /* Outer halo — widest, faintest, gives the aurora its outer feathered edge */
+  const outerBg = `
+    radial-gradient(ellipse 60% 52% at ${spots[2].x1}% ${spots[2].y1}%, ${secondary}, transparent 62%),
+    radial-gradient(ellipse 56% 50% at ${spots[2].x2}% ${spots[2].y2}%, ${tertiary}, transparent 64%),
+    radial-gradient(ellipse 52% 48% at ${spots[2].x3}% ${spots[2].y3}%, ${faint}, transparent 64%),
+    radial-gradient(ellipse 70% 60% at 50% 50%, ${faint}, transparent 70%)
+  `;
+
+  /* Wisp — irregular morphing blob layered on top so the cloud has organic shape change */
+  const wispBg = `
+    radial-gradient(ellipse 50% 44% at ${spots[3].x1}% ${spots[3].y1}%, ${wash}, transparent 58%),
+    radial-gradient(ellipse 46% 40% at ${spots[3].x2}% ${spots[3].y2}%, ${secondary}, transparent 60%),
+    radial-gradient(ellipse 44% 38% at ${spots[3].x3}% ${spots[3].y3}%, ${tertiary}, transparent 58%)
+  `;
+
+  const innerVars = {
+    "--breath-dur": `${t.breathInner}s`,
+    "--breath-delay": `${t.delayInner}s`,
+    "--rot-dur": `${t.rotInner}s`,
+    "--rot-delay": `${t.delayInner}s`,
+    animationDirection: t.rotInnerDir > 0 ? "normal" : "reverse",
+  } as CSSProperties;
+
+  const midVars = {
+    "--breath-dur": `${t.breathMid}s`,
+    "--breath-delay": `${t.delayMid}s`,
+    "--rot-dur": `${t.rotMid}s`,
+    "--rot-delay": `${t.delayMid}s`,
+    animationDirection: t.rotMidDir > 0 ? "normal" : "reverse",
+  } as CSSProperties;
+
+  const outerVars = {
+    "--breath-dur": `${t.breathOuter}s`,
+    "--breath-delay": `${t.delayOuter}s`,
+    "--rot-dur": `${t.rotOuter}s`,
+    "--rot-delay": `${t.delayOuter}s`,
+    animationDirection: t.rotOuterDir > 0 ? "normal" : "reverse",
+  } as CSSProperties;
+
+  const wispVars = {
+    "--morph-dur": `${t.morph}s`,
+    "--morph-delay": `${t.delayMid}s`,
+    "--rot-dur": `${t.morphHue}s`,
+    "--rot-delay": `${t.delayInner}s`,
+    animationDirection: t.rotOuterDir > 0 ? "reverse" : "normal",
+  } as CSSProperties;
 
   return (
     <div
       className={cn(
-        "pointer-events-none absolute inset-0 min-h-[100dvh] w-full overflow-visible",
-        "[contain:layout]",
-        animsPaused && "chakra-fog-paused",
+        "pointer-events-none absolute inset-0 flex items-center justify-center overflow-visible z-0",
+        animsPaused && "aurora-paused",
       )}
       aria-hidden
     >
-      {/* Aurora veil — fades in when practice starts, fades out and stops on idle */}
-      <div className="pointer-events-none absolute inset-0 overflow-visible">
+      {/* Cluster — tracks orb scale via vmin clamps. Idle/running just changes size + intensity
+          via CSS transitions; the keyframe animations underneath never reset. */}
+      <div
+        className={cn(
+          "relative flex items-center justify-center",
+          "transition-[width,height] duration-[2600ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
+          intense
+            ? "h-[clamp(24rem,96vmin,56rem)] w-[clamp(24rem,96vmin,56rem)]"
+            : "h-[clamp(15rem,62vmin,34rem)] w-[clamp(15rem,62vmin,34rem)]",
+          tabVisible &&
+            "will-change-[width,height] [&_*]:will-change-[transform,opacity]",
+        )}
+      >
+        {/* Outer halo — widest, deepest blur, faintest */}
         <div
-          className="pointer-events-none absolute inset-0 blur-[38px] sm:blur-[42px] saturate-[1.06] lg:blur-[30px] xl:blur-[26px]"
+          className="absolute inset-0 rounded-full aurora-breath transition-opacity duration-[2400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={{
-            opacity: intense ? 1 : 0,
-            transition: `opacity ${VEIL_MS} ${VEIL_EASE}`,
-            ...spreadBaseStyle,
+            ...outerVars,
+            background: outerBg,
+            filter: "blur(56px) saturate(1.15)",
+            opacity: intense ? 0.85 : 0.4,
+          }}
+        />
+
+        {/* Mid veil */}
+        <div
+          className="absolute inset-[8%] rounded-full aurora-breath transition-opacity duration-[2400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{
+            ...midVars,
+            background: midBg,
+            filter: "blur(38px) saturate(1.18)",
+            opacity: intense ? 0.95 : 0.55,
+          }}
+        />
+
+        {/* Wisp — morphing organic shape on top of the mid */}
+        <div
+          className="absolute inset-[14%] aurora-morph transition-opacity duration-[2400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{
+            ...wispVars,
+            background: wispBg,
+            filter: "blur(30px) saturate(1.2)",
+            opacity: intense ? 0.85 : 0.5,
+            mixBlendMode: "screen",
+          }}
+        />
+
+        {/* Inner core — brightest, tight to orb */}
+        <div
+          className="absolute inset-[22%] rounded-full aurora-breath transition-opacity duration-[2400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{
+            ...innerVars,
+            background: innerBg,
+            filter: "blur(26px) saturate(1.25)",
+            opacity: intense ? 1 : 0.7,
           }}
         />
       </div>
-
-      {/* Sparks orbit viewport center (aligned with practice orb); breath scales squash/stretch */}
-      {blobs.map(({ bg, i }) => {
-        const {
-          orbitDur,
-          orbitDelay,
-          breathDur,
-          breathDelay,
-          frozenAngle,
-        } = orbitParams(seed, i);
-        const letter = ["a", "b", "c", "d"][i - 1] as "a" | "b" | "c" | "d";
-
-        const orbitArmVars = {
-          "--orbit-r": orbitRadiusCss(seed, i),
-          "--orbit-dur": `${orbitDur}s`,
-          "--orbit-delay": `${orbitDelay}s`,
-          "--orbit-angle-frozen": `${frozenAngle}deg`,
-        } as CSSProperties;
-
-        const sparkBreathVars = {
-          "--breath-dur": `${breathDur}s`,
-          "--breath-delay": `${breathDelay}s`,
-        } as CSSProperties;
-
-        return (
-          <div
-            key={i}
-            className="pointer-events-none absolute left-1/2 top-1/2 h-0 w-0 -translate-x-1/2 -translate-y-1/2"
-          >
-            <div
-              className={cn(
-                "chakra-fog-orbit-arm pointer-events-none transition-transform duration-[2600ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-                intense ? "scale-[1.18] xl:scale-[1.08]" : "scale-100",
-              )}
-              style={orbitArmVars}
-            >
-              <div className="chakra-fog-orbit-counter pointer-events-none">
-                <div
-                  className={cn(
-                    "chakra-fog-spark chakra-fog-breath pointer-events-none",
-                    `chakra-fog-breath-${letter}`,
-                    "transition-[width,height,opacity,filter,border-radius] duration-[2600ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
-                    intense
-                      ? "h-[min(48vmin,380px)] w-[min(48vmin,380px)] opacity-[0.16] blur-[26px] sm:blur-[28px] lg:blur-[22px] xl:blur-[19px]"
-                      : "h-[min(12vmin,88px)] w-[min(12vmin,88px)] opacity-0 blur-[18px] sm:blur-[22px] lg:blur-[18px]",
-                    intense && tabVisible && "will-change-[transform,width,height,opacity]",
-                  )}
-                  style={{
-                    ...sparkBreathVars,
-                    background: bg,
-                    borderRadius: blobRadiusCss(seed, i),
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
