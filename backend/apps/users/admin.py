@@ -1,11 +1,25 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 
 from .models import User
 
 
+class UserCreationFormEmail(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("email",)
+
+
+class UserChangeFormEmail(UserChangeForm):
+    class Meta(UserChangeForm.Meta):
+        model = User
+
+
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
+    form = UserChangeFormEmail
+    add_form = UserCreationFormEmail
     ordering = ("email",)
     list_display = ("email", "display_name", "current_week", "streak_count", "is_staff", "email_verified")
     search_fields = ("email", "display_name")
