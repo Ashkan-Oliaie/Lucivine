@@ -8,6 +8,7 @@ import { ChakraPracticeClouds } from "@/components/visuals/ChakraPracticeClouds"
 import { createChakraSession, fetchChakras } from "@/api/meditation";
 import type { ChakraId } from "@/api/types";
 import { extractMessage } from "@/api/client";
+import { useToast } from "@/components/ui/Toast";
 import { cn } from "@/lib/cn";
 
 const PRESET_MINUTES = [5, 10, 15, 20];
@@ -20,10 +21,19 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m === 0) return `${s}s`;
+  if (s === 0) return `${m} min`;
+  return `${m} min ${s}s`;
+}
+
 export default function ChakraSessionPage() {
   const { id } = useParams<{ id: ChakraId }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const toast = useToast();
 
   const { data: chakras } = useQuery({
     queryKey: ["chakras"],
@@ -35,7 +45,7 @@ export default function ChakraSessionPage() {
   const [kind, setKind] = useState<SessionKind>("timed");
   const [targetSeconds, setTargetSeconds] = useState(10 * 60);
   const [elapsed, setElapsed] = useState(0);
-  const [phase, setPhase] = useState<"idle" | "running" | "paused">("idle");
+  const [phase, setPhase] = useState<"idle" | "running" | "paused" | "completing">("idle");
 
   const submittedRef = useRef(false);
 
@@ -57,10 +67,24 @@ export default function ChakraSessionPage() {
 
   const save = useMutation({
     mutationFn: createChakraSession,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ["chakra-stats"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success({
+        title: "Session saved",
+        description: `${formatDuration(variables.duration_seconds)} logged${
+          chakra ? ` · ${chakra.english}` : ""
+        }`,
+      });
       navigate("/chakras/root");
+    },
+    onError: (err) => {
+      submittedRef.current = false;
+      setPhase((p) => (p === "completing" ? "running" : p));
+      toast.error({
+        title: "Couldn't save session",
+        description: extractMessage(err),
+      });
     },
   });
 
@@ -70,20 +94,14 @@ export default function ChakraSessionPage() {
     if (elapsed < targetSeconds) return;
     if (submittedRef.current || save.isPending) return;
     submittedRef.current = true;
-    save.mutate(
-      {
-        chakra_id: chakra.id,
-        duration_seconds: targetSeconds,
-        frequency_hz: chakra.frequency_hz,
-        mantra: chakra.mantra,
-        notes: "",
-      },
-      {
-        onError: () => {
-          submittedRef.current = false;
-        },
-      },
-    );
+    setPhase("completing");
+    save.mutate({
+      chakra_id: chakra.id,
+      duration_seconds: targetSeconds,
+      frequency_hz: chakra.frequency_hz,
+      mantra: chakra.mantra,
+      notes: "",
+    });
   }, [chakra, elapsed, phase, kind, targetSeconds, save]);
 
   if (!chakra || !chakras?.length) {
@@ -103,28 +121,23 @@ export default function ChakraSessionPage() {
   function submitFreeSession() {
     if (elapsed <= 0 || submittedRef.current || save.isPending) return;
     submittedRef.current = true;
-    save.mutate(
-      {
-        chakra_id: c.id,
-        duration_seconds: elapsed,
-        frequency_hz: c.frequency_hz,
-        mantra: c.mantra,
-        notes: "",
-      },
-      {
-        onError: () => {
-          submittedRef.current = false;
-        },
-      },
-    );
+    save.mutate({
+      chakra_id: c.id,
+      duration_seconds: elapsed,
+      frequency_hz: c.frequency_hz,
+      mantra: c.mantra,
+      notes: "",
+    });
   }
 
   function handleKindSwitch(next: SessionKind) {
+    if (save.isPending) return;
     setKind(next);
     resetSession();
   }
 
   function abandon() {
+    if (save.isPending) return;
     resetSession();
   }
 
@@ -139,7 +152,9 @@ export default function ChakraSessionPage() {
     kind === "timed"
       ? phase === "idle"
         ? "Target length"
-        : "Remaining"
+        : phase === "completing"
+          ? "Saving"
+          : "Remaining"
       : phase === "idle"
         ? "Elapsed"
         : "Elapsed";
@@ -185,7 +200,8 @@ export default function ChakraSessionPage() {
 
       {/* Compact vertical flow that fits within viewport height: kind toggle → orb (click to begin) → mantra + controls */}
       <div className="relative z-[3] flex min-h-0 w-full min-w-0 max-w-none flex-1 flex-col items-center justify-between gap-y-3 md:gap-y-4 px-3 sm:px-4 md:max-w-[min(52rem,calc(100vw-18rem))] lg:max-w-[min(56rem,calc(100vw-22rem))] lg:px-10 xl:px-12 pb-6 md:pb-8 lg:pb-10">
-        <div className="relative z-[50] flex shrink-0 justify-center gap-2 flex-wrap pointer-events-auto">
+        {/* Kind toggle — fixed-height row reserves space for the preset chips so swapping doesn't jump */}
+        <div className="relative z-[50] flex shrink-0 justify-center items-center gap-2 flex-wrap pointer-events-auto min-h-[2.5rem]">
           <button
             type="button"
             onClick={() => handleKindSwitch("timed")}
@@ -211,25 +227,32 @@ export default function ChakraSessionPage() {
             Open
           </button>
 
-          {phase === "idle" && kind === "timed" && (
-            <div className="ml-2 flex items-center gap-1.5 pl-2 border-l border-white/10">
-              {PRESET_MINUTES.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setTargetSeconds(m * 60)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-full border text-[11px] md:text-xs font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50",
-                    targetSeconds === m * 60
-                      ? "border-accent-lavender bg-accent-lavender/10 text-ink-primary"
-                      : "border-white/10 bg-white/[0.04] text-white/[0.78] hover:border-white/24 hover:text-white",
-                  )}
-                >
-                  {m}m
-                </button>
-              ))}
-            </div>
-          )}
+          <div
+            className={cn(
+              "ml-2 flex items-center gap-1.5 pl-2 border-l border-white/10 transition-opacity duration-200",
+              phase === "idle" && kind === "timed"
+                ? "opacity-100"
+                : "opacity-0 pointer-events-none",
+            )}
+            aria-hidden={!(phase === "idle" && kind === "timed")}
+          >
+            {PRESET_MINUTES.map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setTargetSeconds(m * 60)}
+                tabIndex={phase === "idle" && kind === "timed" ? 0 : -1}
+                className={cn(
+                  "px-3 py-1.5 rounded-full border text-[11px] md:text-xs font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50",
+                  targetSeconds === m * 60
+                    ? "border-accent-lavender bg-accent-lavender/10 text-ink-primary"
+                    : "border-white/10 bg-white/[0.04] text-white/[0.78] hover:border-white/24 hover:text-white",
+                )}
+              >
+                {m}m
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="relative z-[10] flex w-full flex-1 min-h-0 flex-col items-center justify-center overflow-visible pointer-events-none [&>*]:pointer-events-auto">
@@ -239,12 +262,12 @@ export default function ChakraSessionPage() {
               key={`chakra-ambient-${c.id}`}
               accent={c.color}
               seedKey={c.id}
-              intense={phase === "running"}
+              intense={phase === "running" || phase === "completing"}
             />
             <ChakraPracticeOrb
               chakraId={c.id}
               accent={c.color}
-              phase={phase}
+              phase={phase === "completing" ? "running" : phase}
               orbDigits={orbDigits}
               caption={orbCaption}
               onActivate={
@@ -261,7 +284,8 @@ export default function ChakraSessionPage() {
           </div>
         </div>
 
-        <div className="relative z-[40] flex w-full flex-col items-center gap-2 md:gap-2.5 shrink-0 pointer-events-auto">
+        {/* Mantra + controls — controls row has reserved height so swapping states never reflows */}
+        <div className="relative z-[40] flex w-full flex-col items-center gap-2.5 md:gap-3 shrink-0 pointer-events-auto">
           <p className="text-center text-[12px] md:text-[13px] text-ink-secondary italic leading-snug">
             {c.mantra}
             <span className="not-italic text-ink-muted">
@@ -269,45 +293,53 @@ export default function ChakraSessionPage() {
             </span>
           </p>
 
-          {phase === "running" && kind === "timed" && (
-            <div className="flex justify-center gap-2 flex-wrap">
-              <Button variant="outline" size="sm" onClick={() => setPhase("paused")}>
-                Pause
-              </Button>
-              <Button variant="ghost" size="sm" onClick={abandon}>
-                Cancel
-              </Button>
-            </div>
-          )}
-
-          {phase === "running" && kind === "free" && (
-            <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 min-h-[3.25rem] w-full">
+            {phase === "running" && kind === "timed" && (
               <div className="flex justify-center gap-2 flex-wrap">
-                <Button size="sm" onClick={submitFreeSession} loading={save.isPending}>
+                <Button variant="soft" size="md" onClick={() => setPhase("paused")} className="min-w-[7rem]">
+                  Pause
+                </Button>
+                <Button variant="ghost" size="md" onClick={abandon} className="min-w-[7rem]">
+                  Cancel
+                </Button>
+              </div>
+            )}
+
+            {phase === "running" && kind === "free" && (
+              <div className="flex justify-center gap-2 flex-wrap">
+                <Button
+                  size="md"
+                  onClick={submitFreeSession}
+                  loading={save.isPending}
+                  className="min-w-[7rem]"
+                >
                   Save
                 </Button>
-                <Button variant="ghost" size="sm" onClick={abandon}>
+                <Button variant="ghost" size="md" onClick={abandon} disabled={save.isPending} className="min-w-[7rem]">
                   Discard
                 </Button>
               </div>
-              {save.isError && (
-                <p className="text-[11px] text-accent-rose max-w-sm text-center">
-                  {extractMessage(save.error)}
-                </p>
-              )}
-            </div>
-          )}
+            )}
 
-          {phase === "paused" && (
-            <div className="flex justify-center gap-2 flex-wrap">
-              <Button size="sm" onClick={() => setPhase("running")}>
-                Resume
-              </Button>
-              <Button variant="ghost" size="sm" onClick={abandon}>
-                Cancel
-              </Button>
-            </div>
-          )}
+            {phase === "paused" && (
+              <div className="flex justify-center gap-2 flex-wrap">
+                <Button size="md" onClick={() => setPhase("running")} className="min-w-[7rem]">
+                  Resume
+                </Button>
+                <Button variant="ghost" size="md" onClick={abandon} className="min-w-[7rem]">
+                  Cancel
+                </Button>
+              </div>
+            )}
+
+            {phase === "completing" && (
+              <div className="flex justify-center gap-2 flex-wrap">
+                <Button size="md" loading className="min-w-[7rem]">
+                  Save
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

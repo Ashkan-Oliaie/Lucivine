@@ -10,9 +10,9 @@ import { ChakraPracticeIslandRail } from "@/features/chakras/ChakraPracticeIslan
 
 export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const chakraSessionPath =
-    /^\/chakras\/[^/]+$/.test(location.pathname) &&
-    location.pathname !== "/chakras/browse";
+  // Treat the whole /chakras section as the practice layout so navigating
+  // browse → session doesn't reflow the main column or shift content leftward.
+  const chakraSessionPath = location.pathname.startsWith("/chakras");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { expanded: sidebarExpanded, toggle: toggleSidebar } = useSidebarRail(true);
 

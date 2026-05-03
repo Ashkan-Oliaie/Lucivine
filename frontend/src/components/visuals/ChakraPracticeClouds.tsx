@@ -48,15 +48,17 @@ export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
   const tertiary = accent ? `${accent}66` : "rgba(125, 197, 255, 0.45)";
   const faint = accent ? `${accent}33` : "rgba(124, 92, 255, 0.18)";
 
-  /* Seeded hot-spot positions so each chakra's aurora has unique highlights */
+  /* Seeded hot-spot positions so each chakra's aurora has unique highlights.
+   * Wider spread (10–90% of layer box) so the cloud reads as broad, irregular
+   * aurora rather than a tight halo around the orb. */
   const spots = useMemo(() => {
-    return [0, 1, 2, 3].map((i) => ({
-      x1: 30 + rnd(seed, i * 7 + 3) * 40,
-      y1: 28 + rnd(seed, i * 11 + 5) * 44,
-      x2: 30 + rnd(seed, i * 13 + 7) * 40,
-      y2: 28 + rnd(seed, i * 17 + 11) * 44,
-      x3: 30 + rnd(seed, i * 19 + 13) * 40,
-      y3: 28 + rnd(seed, i * 23 + 17) * 44,
+    return [0, 1, 2, 3, 4].map((i) => ({
+      x1: 10 + rnd(seed, i * 7 + 3) * 80,
+      y1: 12 + rnd(seed, i * 11 + 5) * 76,
+      x2: 10 + rnd(seed, i * 13 + 7) * 80,
+      y2: 12 + rnd(seed, i * 17 + 11) * 76,
+      x3: 10 + rnd(seed, i * 19 + 13) * 80,
+      y3: 12 + rnd(seed, i * 23 + 17) * 76,
     }));
   }, [seed]);
 
@@ -97,19 +99,28 @@ export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
     radial-gradient(circle at 50% 50%, ${faint}, transparent 70%)
   `;
 
-  /* Outer halo — widest, faintest, gives the aurora its outer feathered edge */
+  /* Outer halo — widest, faintest, gives the aurora its outer feathered edge.
+   * Wider ellipses + asymmetric placements so the outer edge is irregular. */
   const outerBg = `
-    radial-gradient(ellipse 60% 52% at ${spots[2].x1}% ${spots[2].y1}%, ${secondary}, transparent 62%),
-    radial-gradient(ellipse 56% 50% at ${spots[2].x2}% ${spots[2].y2}%, ${tertiary}, transparent 64%),
-    radial-gradient(ellipse 52% 48% at ${spots[2].x3}% ${spots[2].y3}%, ${faint}, transparent 64%),
-    radial-gradient(ellipse 70% 60% at 50% 50%, ${faint}, transparent 70%)
+    radial-gradient(ellipse 75% 62% at ${spots[2].x1}% ${spots[2].y1}%, ${secondary}, transparent 64%),
+    radial-gradient(ellipse 68% 58% at ${spots[2].x2}% ${spots[2].y2}%, ${tertiary}, transparent 66%),
+    radial-gradient(ellipse 62% 54% at ${spots[2].x3}% ${spots[2].y3}%, ${faint}, transparent 66%),
+    radial-gradient(ellipse 90% 72% at 50% 50%, ${faint}, transparent 74%)
   `;
 
   /* Wisp — irregular morphing blob layered on top so the cloud has organic shape change */
   const wispBg = `
-    radial-gradient(ellipse 50% 44% at ${spots[3].x1}% ${spots[3].y1}%, ${wash}, transparent 58%),
-    radial-gradient(ellipse 46% 40% at ${spots[3].x2}% ${spots[3].y2}%, ${secondary}, transparent 60%),
-    radial-gradient(ellipse 44% 38% at ${spots[3].x3}% ${spots[3].y3}%, ${tertiary}, transparent 58%)
+    radial-gradient(ellipse 58% 48% at ${spots[3].x1}% ${spots[3].y1}%, ${wash}, transparent 60%),
+    radial-gradient(ellipse 54% 44% at ${spots[3].x2}% ${spots[3].y2}%, ${secondary}, transparent 62%),
+    radial-gradient(ellipse 50% 40% at ${spots[3].x3}% ${spots[3].y3}%, ${tertiary}, transparent 58%)
+  `;
+
+  /* Drift — extra-wide irregular outer wisp at randomized offset, gives the
+   * impression the cloud trails off in unique directions per chakra. */
+  const driftBg = `
+    radial-gradient(ellipse 70% 50% at ${spots[4].x1}% ${spots[4].y1}%, ${tertiary}, transparent 66%),
+    radial-gradient(ellipse 64% 46% at ${spots[4].x2}% ${spots[4].y2}%, ${faint}, transparent 68%),
+    radial-gradient(ellipse 58% 42% at ${spots[4].x3}% ${spots[4].y3}%, ${secondary}, transparent 64%)
   `;
 
   const innerVars = {
@@ -144,6 +155,14 @@ export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
     animationDirection: t.rotOuterDir > 0 ? "reverse" : "normal",
   } as CSSProperties;
 
+  const driftVars = {
+    "--breath-dur": `${t.breathOuter + 4}s`,
+    "--breath-delay": `${t.delayOuter - 7}s`,
+    "--rot-dur": `${t.rotOuter + 30}s`,
+    "--rot-delay": `${t.delayOuter}s`,
+    animationDirection: t.rotInnerDir > 0 ? "reverse" : "normal",
+  } as CSSProperties;
+
   return (
     <div
       className={cn(
@@ -159,12 +178,24 @@ export function ChakraPracticeClouds({ accent, intense, seedKey }: Props) {
           "relative flex items-center justify-center",
           "transition-[width,height] duration-[2600ms] ease-[cubic-bezier(0.22,1,0.36,1)]",
           intense
-            ? "h-[clamp(24rem,96vmin,56rem)] w-[clamp(24rem,96vmin,56rem)]"
-            : "h-[clamp(15rem,62vmin,34rem)] w-[clamp(15rem,62vmin,34rem)]",
+            ? "h-[clamp(28rem,120vmin,72rem)] w-[clamp(28rem,120vmin,72rem)]"
+            : "h-[clamp(18rem,80vmin,46rem)] w-[clamp(18rem,80vmin,46rem)]",
           tabVisible &&
             "will-change-[width,height] [&_*]:will-change-[transform,opacity]",
         )}
       >
+        {/* Drift — outermost wide wisp, irregular per-chakra offset */}
+        <div
+          className="absolute -inset-[14%] aurora-breath transition-opacity duration-[2400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{
+            ...driftVars,
+            background: driftBg,
+            filter: "blur(72px) saturate(1.1)",
+            opacity: intense ? 0.55 : 0.28,
+            mixBlendMode: "screen",
+          }}
+        />
+
         {/* Outer halo — widest, deepest blur, faintest */}
         <div
           className="absolute inset-0 rounded-full aurora-breath transition-opacity duration-[2400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"

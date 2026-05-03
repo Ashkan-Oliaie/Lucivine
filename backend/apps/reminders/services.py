@@ -69,11 +69,7 @@ def _cue(reminder: Reminder) -> tuple[str, str, str]:
         ),
         Reminder.Kind.CUSTOM: (
             label or "Reminder",
-            (
-                f"{label} — time for your practice."
-                if label
-                else "Your custom reminder — tap to open Lucivine."
-            ),
+            "Time for your practice — tap to open Lucivine.",
             "/",
         ),
     }

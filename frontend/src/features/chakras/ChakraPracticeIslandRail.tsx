@@ -5,14 +5,17 @@ import type { ChakraId } from "@/api/types";
 import { ChakraPracticeIsland } from "@/features/chakras/ChakraPracticeIsland";
 
 /**
- * Desktop rail beside global IslandSidebar on `/chakras/:id` practice only
- * (not `/chakras/browse`). Skeleton reserves layout immediately.
+ * Desktop rail beside global IslandSidebar across the entire `/chakras/*` section
+ * (browse + per-center practice). Mounting the rail uniformly across the section
+ * prevents the main column from reflowing leftward when navigating into a session.
  */
 export function ChakraPracticeIslandRail() {
   const { pathname } = useLocation();
-  const m = pathname.match(/^\/chakras\/([^/]+)$/);
-  const rawId = m?.[1];
-  if (!rawId || rawId === "browse") return null;
+  if (!pathname.startsWith("/chakras")) return null;
+
+  const sessionMatch = pathname.match(/^\/chakras\/([^/]+)$/);
+  const rawId = sessionMatch?.[1];
+  const isSession = Boolean(rawId) && rawId !== "browse";
 
   const { data: chakras, isPending } = useQuery({
     queryKey: ["chakras"],
@@ -39,8 +42,9 @@ export function ChakraPracticeIslandRail() {
     );
   }
 
-  const active = chakras.find((c) => c.id === (rawId as ChakraId));
-  if (!active) return null;
+  const active = isSession
+    ? chakras.find((c) => c.id === (rawId as ChakraId)) ?? chakras[0]
+    : chakras[0];
 
   return (
     <div className="relative z-[30] hidden md:flex shrink-0 self-stretch flex-col min-h-0 h-full overflow-hidden">
