@@ -11,6 +11,8 @@ export default function ChakraListPage() {
     queryKey: ["chakras"],
     queryFn: fetchChakras,
     staleTime: 60 * 60_000,
+
+
   });
   const { data: stats } = useQuery({
     queryKey: ["chakra-stats"],
