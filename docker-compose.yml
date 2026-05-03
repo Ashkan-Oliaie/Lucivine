@@ -4,9 +4,10 @@
 #   - Paste env vars into the Dokploy UI; Dokploy writes them to .env next to this file.
 #   - Dokploy runs `docker compose up -d --build` from the repo root.
 #
-# Direct access (no Traefik / no domain):
-#   SPA   → http://<host>:${WEB_HTTP_PORT:-3001}
-#   API   → http://<host>:${BACKEND_HTTP_PORT:-8000}
+# Routing:
+#   web and backend join dokploy-network so Dokploy's Traefik can reach them.
+#   Add domains in the Dokploy UI (Domains tab) — service `web` port 3000, service `backend` port 8000.
+#   db and scheduler stay on the default bridge — never put Postgres on dokploy-network.
 #
 # When serving over plain HTTP on an IP, set DJANGO_SECURE_SSL_REDIRECT=false
 # (otherwise Django 301s every request to https:// and nothing answers).
@@ -45,8 +46,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "${BACKEND_HTTP_PORT:-8000}:8000"
+    expose:
+      - "8000"
+    networks:
+      - default
+      - dokploy-network
 
   web:
     build:
@@ -56,10 +60,13 @@ services:
         # Baked into the JS bundle at build time — must point at the public API URL the browser sees.
         VITE_API_URL: ${VITE_API_URL}
     restart: unless-stopped
-    ports:
-      - "${WEB_HTTP_PORT:-3001}:3000"
+    expose:
+      - "3000"
     depends_on:
       - backend
+    networks:
+      - default
+      - dokploy-network
 
   scheduler:
     image: alpine:3.19
@@ -81,6 +88,10 @@ services:
               || echo "[scheduler] tick failed"
             sleep 60
           done
+
+networks:
+  dokploy-network:
+    external: true
 
 volumes:
   postgres_data:
