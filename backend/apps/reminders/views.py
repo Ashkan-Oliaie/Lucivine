@@ -17,7 +17,11 @@ class ReminderViewSet(viewsets.ModelViewSet):
     serializer_class = ReminderSerializer
 
     def get_queryset(self):
-        return Reminder.objects.filter(user=self.request.user)
+        qs = Reminder.objects.filter(user=self.request.user)
+        practice_slug = self.request.query_params.get("practice_slug")
+        if practice_slug:
+            qs = qs.filter(practice_slug=practice_slug)
+        return qs
 
     def perform_create(self, serializer):
         # Save with a temporary next_fire_at so the model validates, then recompute.

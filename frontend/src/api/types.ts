@@ -1,3 +1,19 @@
+export type ExperienceLevel =
+  | "newcomer"
+  | "recaller"
+  | "dabbler"
+  | "practitioner"
+  | "adept";
+
+export type Goal =
+  | "recall"
+  | "lucidity"
+  | "nightmares"
+  | "creativity"
+  | "healing"
+  | "meditation"
+  | "sleep_quality";
+
 export type User = {
   id: string;
   email: string;
@@ -9,6 +25,16 @@ export type User = {
   last_practice_date: string | null;
   email_verified: boolean;
   date_joined: string;
+  experience_level: ExperienceLevel | "";
+  goals: Goal[];
+  typical_bedtime: string | null;
+  onboarded_at: string | null;
+};
+
+export type OnboardingInput = {
+  experience_level?: ExperienceLevel;
+  goals?: Goal[];
+  typical_bedtime?: string | null;
 };
 
 export type TokenPair = {
@@ -199,6 +225,8 @@ export type Reminder = {
   next_fire_at: string;
   last_fired_at: string | null;
   created_at: string;
+  /** Empty string when this reminder isn't bound to a specific practice. */
+  practice_slug: string;
 };
 
 // Analytics

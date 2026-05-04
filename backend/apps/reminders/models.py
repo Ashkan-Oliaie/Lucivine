@@ -52,6 +52,12 @@ class Reminder(models.Model):
     next_fire_at = models.DateTimeField(db_index=True)
     last_fired_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    practice_slug = models.CharField(
+        max_length=64,
+        blank=True,
+        db_index=True,
+        help_text="If set, this reminder is bound to a specific weekly-program practice.",
+    )
 
     class Meta:
         ordering = ("next_fire_at",)

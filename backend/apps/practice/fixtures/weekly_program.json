@@ -3,16 +3,17 @@
     "model": "practice.weeklyprogram",
     "pk": 1,
     "fields": {
-      "title": "The Awakening",
-      "focus": "Build dream awareness and a daily reality-check rhythm.",
+      "title": "Settle the surface",
+      "focus": "Build dream recall and meta-awareness. No induction technique yet — first the substrate that lets one work.",
       "daily_practices": [
+        "evening_winddown",
         "morning_recall",
-        "rc_every_2h",
-        "evening_reflection",
-        "journal_entry"
+        "journal_entry",
+        "sensory_grounding",
+        "nose_pinch_rc"
       ],
-      "primary_technique": "MILD",
-      "technique_detail": "Mnemonic Induction. As you fall asleep, repeat with intent: 'Tonight I will recognise that I am dreaming.' Visualise becoming lucid in a recent dream. Hold the intention until sleep takes you.",
+      "primary_technique": "FOUNDATION",
+      "technique_detail": "Recall foundation. Dream recall is the single strongest predictor of lucidity (Tan 2023, systematic review). This week installs the substrate: a 30-minute wind-down before sleep, motionless recall on waking, a written entry, several sensory grounding pauses through the day, and the most reliable reality check — the nose pinch (Aspy & ILDIS 2020). Lucidity techniques follow once recall is reliable.",
       "recommended_chakras": ["thirdeye", "crown"]
     }
   },
@@ -20,17 +21,18 @@
     "model": "practice.weeklyprogram",
     "pk": 2,
     "fields": {
-      "title": "Threads of Memory",
-      "focus": "Strengthen recall. Without memory, lucidity is invisible.",
+      "title": "Threads of memory",
+      "focus": "Sharpen recall, learn to spot dream signs, begin daily mindfulness.",
       "daily_practices": [
         "wake_recall_freeze",
         "voice_memo_recall",
-        "rc_every_2h",
-        "journal_entry",
-        "evening_reflection"
+        "dream_sign_review",
+        "mindful_breath_10min",
+        "finger_count_rc",
+        "journal_entry"
       ],
       "primary_technique": "DILD",
-      "technique_detail": "Dream-Initiated Lucid Dream. Train recognition of dream signs by reviewing your journal nightly. The pattern of strangeness becomes a doorway: when you see it again, you wake within.",
+      "technique_detail": "Dream-Initiated Lucid Dream via dream-sign recognition. Re-read your last week of journals nightly and tag recurring symbols, places, and people — these are your personal dream signs. When one shows up in a dream, lucidity follows. Daily 10-minute open-monitoring meditation begins the long-term mindfulness curve that frequent lucid dreamers share (Baird 2019; MDPI 2024).",
       "recommended_chakras": ["heart", "thirdeye"]
     }
   },
@@ -38,18 +40,17 @@
     "model": "practice.weeklyprogram",
     "pk": 3,
     "fields": {
-      "title": "Bridge of Sleep",
-      "focus": "First WILD attempts. Ride the hypnagogic wave consciously.",
+      "title": "Mnemonic intent",
+      "focus": "MILD — train the intention loop. Visualisation, not just rote phrase.",
       "daily_practices": [
         "morning_recall",
-        "afternoon_meditation",
-        "rc_every_2h",
-        "wbtb_3am",
-        "wild_attempt",
+        "mindful_breath_10min",
+        "intent_setting",
+        "nose_pinch_rc",
         "journal_entry"
       ],
-      "primary_technique": "WILD",
-      "technique_detail": "Wake-Initiated Lucid Dream. Lie still on your back. Watch hypnagogic imagery without grasping. Stay aware as vibrations and sounds surge. Do not move. Let the body sleep while the witness remains.",
+      "primary_technique": "MILD",
+      "technique_detail": "Mnemonic Induction of Lucid Dreams. As you fall asleep, repeat with intent: 'Next time I am dreaming, I will recognise that I am dreaming.' Then *visualise* yourself becoming lucid in a dream from earlier in the week. Aspy 2017 RCT showed visualisation matters more than the phrase. WBTB amplifies MILD (covered in Week 5) but the intention loop comes first.",
       "recommended_chakras": ["thirdeye", "crown"]
     }
   },
@@ -57,17 +58,17 @@
     "model": "practice.weeklyprogram",
     "pk": 4,
     "fields": {
-      "title": "The Hypnagogic Garden",
-      "focus": "SSILD cycles to gently sharpen senses across the threshold.",
+      "title": "The hypnagogic garden",
+      "focus": "SSILD cycles after weekend WBTB — gentle sensory induction.",
       "daily_practices": [
         "morning_recall",
-        "rc_every_2h",
-        "wbtb_3am",
+        "body_scan",
         "ssild_cycles",
+        "wbtb_weekend",
         "journal_entry"
       ],
       "primary_technique": "SSILD",
-      "technique_detail": "Senses-Initiated Lucid Dream. After WBTB, cycle slow attention across sight, sound, touch — three rounds slow, three rounds quick — then sleep. Lucidity often arises in the next dream.",
+      "technique_detail": "Senses-Initiated Lucid Dream. After waking 4–5 hours into sleep (weekend nights only — protect recall), cycle slow attention across sight, sound, and touch — three slow rounds, three quick rounds — then return to sleep. Aspy 2020 ILDIS (n=355) found SSILD equally effective as MILD with no required visualisation skill.",
       "recommended_chakras": ["heart", "throat", "thirdeye"]
     }
   },
@@ -75,17 +76,17 @@
     "model": "practice.weeklyprogram",
     "pk": 5,
     "fields": {
-      "title": "Wake Back to Bed",
-      "focus": "Use the late-night REM window deliberately.",
+      "title": "Wake back to bed",
+      "focus": "WBTB combined with MILD or SSILD — the highest-yield protocol.",
       "daily_practices": [
-        "early_bedtime",
+        "evening_winddown",
         "wbtb_4_5h",
         "20m_awake_practice",
         "wild_or_mild_attempt",
         "journal_entry"
       ],
       "primary_technique": "WBTB",
-      "technique_detail": "Wake Back to Bed. Sleep four to five hours. Wake fully for fifteen to twenty minutes — read about lucid dreaming. Return to bed with strong intention. WBTB is the single highest-yield protocol.",
+      "technique_detail": "Wake Back to Bed. Sleep 4½–6 hours, wake fully for 20–30 minutes (lights low; read about lucid dreaming or skim your journal), then return to bed and run MILD or SSILD as you fall asleep. Aspy 2017 — WBTB+MILD reached 54% success when participants fell asleep within 5 minutes of finishing the technique. 2–4 attempts per week is sustainable; daily WBTB compounds sleep debt and crushes recall.",
       "recommended_chakras": ["solar", "thirdeye"]
     }
   },
@@ -93,18 +94,17 @@
     "model": "practice.weeklyprogram",
     "pk": 6,
     "fields": {
-      "title": "Weaving Worlds",
-      "focus": "Integrate techniques. Begin sustained, purposeful lucidity.",
+      "title": "Stabilisation and intent",
+      "focus": "Pick the protocol that worked. Set one nightly dream-goal.",
       "daily_practices": [
         "chosen_technique",
-        "rc_every_2h",
+        "nose_pinch_rc",
         "evening_chakra_session",
         "wbtb_chosen",
-        "spell_practice",
         "journal_entry"
       ],
       "primary_technique": "WILD",
-      "technique_detail": "Integration. Choose your strongest technique. Set a single dream goal each night — a place to visit, a question to ask, a spell to attempt. Lucidity becomes a practice rather than an event.",
+      "technique_detail": "Integration. Choose the technique from Weeks 3–5 that produced your strongest result. Set a single intention each night — a place to visit, a question to ask, a person to find. Stumbrys & Erlacher 2017 — long-term mindfulness predicts the ability to *control* lucid dreams, not just enter them. Lucidity becomes a practice, not an event.",
       "recommended_chakras": ["root", "sacral", "solar", "heart", "throat", "thirdeye", "crown"]
     }
   }

@@ -84,7 +84,7 @@ export default function RemindersPage() {
     isFetching,
   } = useQuery({
     queryKey: ["reminders"],
-    queryFn: listReminders,
+    queryFn: () => listReminders(),
     staleTime: 30_000,
   });
 

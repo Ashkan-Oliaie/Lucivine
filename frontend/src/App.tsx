@@ -19,6 +19,7 @@ import RemindersPage from "@/features/reminders/RemindersPage";
 import AnalyticsPage from "@/features/analytics/AnalyticsPage";
 import TransitionPage from "@/features/transition/TransitionPage";
 import SettingsPage from "@/features/settings/SettingsPage";
+import OnboardingPage from "@/features/onboarding/OnboardingPage";
 import { useAuthStore } from "@/stores/auth";
 import { ReactNode, useEffect } from "react";
 import { useReminderDueFlush } from "@/hooks/useReminderDueFlush";
@@ -92,6 +93,15 @@ export default function App() {
               ) : (
                 <Navigate to="/login" replace />
               )
+            }
+          />
+
+          <Route
+            path="/onboarding"
+            element={
+              <ProtectedRoute>
+                <OnboardingPage />
+              </ProtectedRoute>
             }
           />
 

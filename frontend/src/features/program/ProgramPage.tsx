@@ -16,137 +16,8 @@ import type { WeeklyProgram } from "@/api/types";
 import { cn } from "@/lib/cn";
 import { extractMessage } from "@/api/client";
 import { PathSummaryAside } from "./PathSummaryAside";
-
-type PracticeMeta = {
-  label: string;
-  glyph: string;
-  description: string;
-  steps: string[];
-  duration: string;
-};
-
-const PRACTICE_META: Record<string, PracticeMeta> = {
-  morning_recall: {
-    label: "Morning recall",
-    glyph: "☀",
-    description:
-      "On waking, stay still. Replay anything — a feeling, a fragment — before it dissolves.",
-    steps: [
-      "Don't move or open your eyes when you wake.",
-      "Hold whatever drifts up — a colour, a face, a place.",
-      "Reach for your journal only once you have something to anchor.",
-    ],
-    duration: "3–5 min",
-  },
-  rc_every_2h: {
-    label: "Reality check every 2h",
-    glyph: "○",
-    description:
-      "A small, deliberate question to waking life — repeated until it slips into dreams.",
-    steps: [
-      "Pause. Ask: am I dreaming?",
-      "Try a check (count fingers, push a thumb through your palm).",
-      "Look around for one detail that *doesn't* fit.",
-    ],
-    duration: "30 sec",
-  },
-  evening_reflection: {
-    label: "Evening reflection",
-    glyph: "☾",
-    description:
-      "Before sleep, set the night's intention. Tell yourself you'll notice.",
-    steps: [
-      "Lie still. Slow the breath.",
-      "Picture the moment you'd realise you're dreaming.",
-      "Say it: 'Tonight, I'll notice.'",
-    ],
-    duration: "5 min",
-  },
-  journal_entry: {
-    label: "Journal entry",
-    glyph: "❍",
-    description:
-      "A written entry — even a sentence — strengthens the recall muscle and trains the symbols.",
-    steps: [
-      "Open a new entry the moment you wake.",
-      "Title it with whatever lingers — even nonsense.",
-      "Tag the strongest feeling and one symbol.",
-    ],
-    duration: "5–10 min",
-  },
-  wake_recall_freeze: {
-    label: "Wake-still recall",
-    glyph: "≡",
-    description:
-      "Resist movement. Movement is the river that washes the dream away.",
-    steps: [
-      "Don't open your eyes. Don't shift position.",
-      "Stay for 60 seconds. Let the dream surface.",
-      "Move only when you have the thread.",
-    ],
-    duration: "1–3 min",
-  },
-  voice_memo_recall: {
-    label: "Voice-memo recall",
-    glyph: "♪",
-    description:
-      "Speak the dream while it's hot. Words come faster than fingers.",
-    steps: [
-      "Phone within reach before you sleep.",
-      "On waking, hit record without sitting up.",
-      "Whisper the fragments. Transcribe later.",
-    ],
-    duration: "2–4 min",
-  },
-  afternoon_meditation: {
-    label: "Afternoon meditation",
-    glyph: "✦",
-    description:
-      "A short stillness in the day. Trains the gentle attention you'll need at the threshold.",
-    steps: [
-      "Sit. Eyes soft or closed.",
-      "Follow the breath without steering it.",
-      "When the mind drifts, return — without judgement.",
-    ],
-    duration: "10–20 min",
-  },
-  wbtb_3am: {
-    label: "Wake back to bed",
-    glyph: "◐",
-    description:
-      "Wake briefly mid-sleep to catch the lucid window when REM is richest.",
-    steps: [
-      "Set an alarm for ~5 hours after sleep onset.",
-      "Stay up 15–20 min, lights low. Re-read your last dream.",
-      "Return to bed with the intention: 'I'll notice.'",
-    ],
-    duration: "20 min awake",
-  },
-  wild_attempt: {
-    label: "WILD attempt",
-    glyph: "≈",
-    description:
-      "Wake-induced lucid: keep the body asleep, the mind awake. Slip across the threshold consciously.",
-    steps: [
-      "After WBTB, lie still on your back.",
-      "Watch hypnagogic imagery without grabbing.",
-      "Let the body fall. Stay aware as the dream forms.",
-    ],
-    duration: "15–40 min",
-  },
-};
-
-function metaFor(key: string): PracticeMeta {
-  return (
-    PRACTICE_META[key] ?? {
-      label: key.replace(/_/g, " "),
-      glyph: "·",
-      description: "",
-      steps: [],
-      duration: "",
-    }
-  );
-}
+import { metaFor, type PracticeMeta } from "./practiceMeta";
+import { PracticeAlarmButton } from "./PracticeAlarmButton";
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -292,6 +163,7 @@ export default function ProgramPage() {
                 <PracticeCard
                   key={p}
                   index={idx}
+                  practiceSlug={p}
                   meta={meta}
                   done={done}
                   onOpen={() =>
@@ -476,12 +348,14 @@ function CollapsiblePath(props: {
 
 function PracticeCard({
   index,
+  practiceSlug,
   meta,
   done,
   onOpen,
   onComplete,
 }: {
   index: number;
+  practiceSlug: string;
   meta: PracticeMeta;
   done: boolean;
   onOpen: () => void;
@@ -521,24 +395,27 @@ function PracticeCard({
           )}
         </div>
       </button>
-      <label
-        className="shrink-0 flex items-center px-4 md:px-5 border-l border-white/[0.06] cursor-pointer select-none"
+      <div
+        className="shrink-0 flex items-center gap-2 px-3 md:px-4 border-l border-white/[0.06]"
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <input
-          type="checkbox"
-          className="w-5 h-5 rounded border-white/25 bg-white/[0.04] text-accent-mint focus:ring-accent-lavender/50 focus:ring-offset-2 focus:ring-offset-void"
-          checked={done}
-          disabled={done}
-          onChange={() => {
-            if (!done) onComplete();
-          }}
-          aria-label={
-            done ? `${meta.label} completed today` : `Mark ${meta.label} done today`
-          }
-        />
-      </label>
+        <PracticeAlarmButton practiceSlug={practiceSlug} meta={meta} />
+        <label className="cursor-pointer select-none flex items-center pl-1">
+          <input
+            type="checkbox"
+            className="w-5 h-5 rounded border-white/25 bg-white/[0.04] text-accent-mint focus:ring-accent-lavender/50 focus:ring-offset-2 focus:ring-offset-void"
+            checked={done}
+            disabled={done}
+            onChange={() => {
+              if (!done) onComplete();
+            }}
+            aria-label={
+              done ? `${meta.label} completed today` : `Mark ${meta.label} done today`
+            }
+          />
+        </label>
+      </div>
     </motion.div>
   );
 }

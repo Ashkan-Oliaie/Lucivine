@@ -3,6 +3,8 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .models import ExperienceLevel, Goal
+
 User = get_user_model()
 
 
@@ -20,6 +22,10 @@ class UserSerializer(serializers.ModelSerializer):
             "last_practice_date",
             "email_verified",
             "date_joined",
+            "experience_level",
+            "goals",
+            "typical_bedtime",
+            "onboarded_at",
         )
         read_only_fields = (
             "id",
@@ -28,7 +34,23 @@ class UserSerializer(serializers.ModelSerializer):
             "last_practice_date",
             "email_verified",
             "date_joined",
+            "onboarded_at",
         )
+
+
+class OnboardingSerializer(serializers.Serializer):
+    """Single-shot onboarding payload. All fields optional — skipping is allowed."""
+
+    experience_level = serializers.ChoiceField(
+        choices=ExperienceLevel.choices, required=False, allow_blank=True
+    )
+    goals = serializers.ListField(
+        child=serializers.ChoiceField(choices=Goal.choices),
+        required=False,
+        allow_empty=True,
+        max_length=3,
+    )
+    typical_bedtime = serializers.TimeField(required=False, allow_null=True)
 
 
 class RegisterSerializer(serializers.Serializer):

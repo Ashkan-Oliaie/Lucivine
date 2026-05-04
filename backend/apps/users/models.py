@@ -1,7 +1,26 @@
 import uuid
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
+
+
+class ExperienceLevel(models.TextChoices):
+    NEWCOMER = "newcomer", "Never recalled a dream / haven't tried lucid"
+    RECALLER = "recaller", "Remembers dreams most mornings, no lucid yet"
+    DABBLER = "dabbler", "1–3 lucid dreams ever"
+    PRACTITIONER = "practitioner", "Lucid monthly+, knows MILD/WBTB"
+    ADEPT = "adept", "Lucid weekly+, wants depth/control"
+
+
+class Goal(models.TextChoices):
+    RECALL = "recall", "Better dream recall"
+    LUCIDITY = "lucidity", "Have a lucid dream"
+    NIGHTMARES = "nightmares", "Reduce nightmares"
+    CREATIVITY = "creativity", "Creative inspiration"
+    HEALING = "healing", "Emotional healing"
+    MEDITATION = "meditation", "Mindfulness practice"
+    SLEEP_QUALITY = "sleep_quality", "Better sleep"
 
 
 class UserManager(BaseUserManager):
@@ -43,6 +62,14 @@ class User(AbstractUser):
     streak_count = models.PositiveIntegerField(default=0)
     last_practice_date = models.DateField(null=True, blank=True)
     email_verified = models.BooleanField(default=False)
+
+    # Onboarding — captured the first time the user lands after signup.
+    experience_level = models.CharField(
+        max_length=16, choices=ExperienceLevel.choices, blank=True
+    )
+    goals = ArrayField(models.CharField(max_length=24), default=list, blank=True)
+    typical_bedtime = models.TimeField(null=True, blank=True)
+    onboarded_at = models.DateTimeField(null=True, blank=True)
 
     objects = UserManager()
 

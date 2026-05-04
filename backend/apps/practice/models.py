@@ -7,6 +7,7 @@ from django.db import models
 
 
 class Technique(models.TextChoices):
+    FOUNDATION = "FOUNDATION", "Foundation"
     DILD = "DILD", "DILD"
     WILD = "WILD", "WILD"
     MILD = "MILD", "MILD"

@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { TokenPair, User } from "./types";
+import type { OnboardingInput, TokenPair, User } from "./types";
 
 export async function register(input: {
   email: string;
@@ -32,5 +32,15 @@ export async function logout(refresh: string): Promise<void> {
 
 export async function verifyEmail(code: string): Promise<User> {
   const { data } = await api.post<User>("/auth/verify-email/", { code });
+  return data;
+}
+
+export async function submitOnboarding(input: OnboardingInput): Promise<User> {
+  const { data } = await api.post<User>("/auth/onboarding/", input);
+  return data;
+}
+
+export async function skipOnboarding(): Promise<User> {
+  const { data } = await api.post<User>("/auth/onboarding/skip/");
   return data;
 }

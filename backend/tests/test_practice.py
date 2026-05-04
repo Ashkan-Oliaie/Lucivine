@@ -8,19 +8,22 @@ from apps.practice.models import UserProgress, WeeklyProgram
 
 @pytest.fixture
 def program(db):
+    """Program rows. The 0003 data migration already seeds the v2 curriculum;
+    use update_or_create so the fixture can run on top of the seeded rows."""
     weeks = []
     for i in range(1, 7):
-        weeks.append(
-            WeeklyProgram.objects.create(
-                week_number=i,
-                title=f"Week {i}",
-                focus="focus",
-                daily_practices=["morning_recall", "rc_every_2h"],
-                primary_technique="DILD",
-                technique_detail="detail",
-                recommended_chakras=["thirdeye"],
-            )
+        obj, _ = WeeklyProgram.objects.update_or_create(
+            week_number=i,
+            defaults={
+                "title": f"Week {i}",
+                "focus": "focus",
+                "daily_practices": ["morning_recall", "rc_every_2h"],
+                "primary_technique": "DILD",
+                "technique_detail": "detail",
+                "recommended_chakras": ["thirdeye"],
+            },
         )
+        weeks.append(obj)
     return weeks
 
 

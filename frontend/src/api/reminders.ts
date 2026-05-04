@@ -28,9 +28,11 @@ function normalizeReminderList(payload: unknown): Paginated<Reminder> {
   };
 }
 
-export async function listReminders(): Promise<Paginated<Reminder>> {
+export async function listReminders(params?: {
+  practice_slug?: string;
+}): Promise<Paginated<Reminder>> {
   const { data } = await api.get<unknown>("/reminders/", {
-    params: { limit: 200 },
+    params: { limit: 200, ...(params ?? {}) },
   });
   return normalizeReminderList(data);
 }

@@ -1,0 +1,182 @@
+"""Apply program v2 — evidence-based curriculum.
+
+Two operations:
+ 1. Add FOUNDATION to the `primary_technique` choices (Week 1 has no induction).
+ 2. Idempotently upsert the six WeeklyProgram rows with the new content.
+
+UserProgress isn't FK'd to WeeklyProgram (week_number is just a small int), so
+overwriting WeeklyProgram rows preserves user completion logs.
+"""
+
+from django.db import migrations, models
+import django.core.validators
+
+
+PROGRAM_V2 = [
+    {
+        "week_number": 1,
+        "title": "Settle the surface",
+        "focus": "Build dream recall and meta-awareness. No induction technique yet — first the substrate that lets one work.",
+        "daily_practices": [
+            "evening_winddown",
+            "morning_recall",
+            "journal_entry",
+            "sensory_grounding",
+            "nose_pinch_rc",
+        ],
+        "primary_technique": "FOUNDATION",
+        "technique_detail": (
+            "Recall foundation. Dream recall is the single strongest predictor of lucidity "
+            "(Tan 2023, systematic review). This week installs the substrate: a 30-minute "
+            "wind-down before sleep, motionless recall on waking, a written entry, several "
+            "sensory grounding pauses through the day, and the most reliable reality check — "
+            "the nose pinch (Aspy & ILDIS 2020). Lucidity techniques follow once recall is reliable."
+        ),
+        "recommended_chakras": ["thirdeye", "crown"],
+    },
+    {
+        "week_number": 2,
+        "title": "Threads of memory",
+        "focus": "Sharpen recall, learn to spot dream signs, begin daily mindfulness.",
+        "daily_practices": [
+            "wake_recall_freeze",
+            "voice_memo_recall",
+            "dream_sign_review",
+            "mindful_breath_10min",
+            "finger_count_rc",
+            "journal_entry",
+        ],
+        "primary_technique": "DILD",
+        "technique_detail": (
+            "Dream-Initiated Lucid Dream via dream-sign recognition. Re-read your last week of "
+            "journals nightly and tag recurring symbols, places, and people — these are your "
+            "personal dream signs. When one shows up in a dream, lucidity follows. Daily 10-minute "
+            "open-monitoring meditation begins the long-term mindfulness curve that frequent "
+            "lucid dreamers share (Baird 2019; MDPI 2024)."
+        ),
+        "recommended_chakras": ["heart", "thirdeye"],
+    },
+    {
+        "week_number": 3,
+        "title": "Mnemonic intent",
+        "focus": "MILD — train the intention loop. Visualisation, not just rote phrase.",
+        "daily_practices": [
+            "morning_recall",
+            "mindful_breath_10min",
+            "intent_setting",
+            "nose_pinch_rc",
+            "journal_entry",
+        ],
+        "primary_technique": "MILD",
+        "technique_detail": (
+            "Mnemonic Induction of Lucid Dreams. As you fall asleep, repeat with intent: "
+            "'Next time I am dreaming, I will recognise that I am dreaming.' Then visualise "
+            "yourself becoming lucid in a dream from earlier in the week. Aspy 2017 RCT showed "
+            "visualisation matters more than the phrase. WBTB amplifies MILD (covered in Week 5) "
+            "but the intention loop comes first."
+        ),
+        "recommended_chakras": ["thirdeye", "crown"],
+    },
+    {
+        "week_number": 4,
+        "title": "The hypnagogic garden",
+        "focus": "SSILD cycles after weekend WBTB — gentle sensory induction.",
+        "daily_practices": [
+            "morning_recall",
+            "body_scan",
+            "ssild_cycles",
+            "wbtb_weekend",
+            "journal_entry",
+        ],
+        "primary_technique": "SSILD",
+        "technique_detail": (
+            "Senses-Initiated Lucid Dream. After waking 4–5 hours into sleep (weekend nights "
+            "only — protect recall), cycle slow attention across sight, sound, and touch — "
+            "three slow rounds, three quick rounds — then return to sleep. Aspy 2020 ILDIS "
+            "(n=355) found SSILD equally effective as MILD with no required visualisation skill."
+        ),
+        "recommended_chakras": ["heart", "throat", "thirdeye"],
+    },
+    {
+        "week_number": 5,
+        "title": "Wake back to bed",
+        "focus": "WBTB combined with MILD or SSILD — the highest-yield protocol.",
+        "daily_practices": [
+            "evening_winddown",
+            "wbtb_4_5h",
+            "20m_awake_practice",
+            "wild_or_mild_attempt",
+            "journal_entry",
+        ],
+        "primary_technique": "WBTB",
+        "technique_detail": (
+            "Wake Back to Bed. Sleep 4½–6 hours, wake fully for 20–30 minutes (lights low; "
+            "read about lucid dreaming or skim your journal), then return to bed and run MILD "
+            "or SSILD as you fall asleep. Aspy 2017 — WBTB+MILD reached 54% success when "
+            "participants fell asleep within 5 minutes of finishing the technique. 2–4 attempts "
+            "per week is sustainable; daily WBTB compounds sleep debt and crushes recall."
+        ),
+        "recommended_chakras": ["solar", "thirdeye"],
+    },
+    {
+        "week_number": 6,
+        "title": "Stabilisation and intent",
+        "focus": "Pick the protocol that worked. Set one nightly dream-goal.",
+        "daily_practices": [
+            "chosen_technique",
+            "nose_pinch_rc",
+            "evening_chakra_session",
+            "wbtb_chosen",
+            "journal_entry",
+        ],
+        "primary_technique": "WILD",
+        "technique_detail": (
+            "Integration. Choose the technique from Weeks 3–5 that produced your strongest "
+            "result. Set a single intention each night — a place to visit, a question to ask, "
+            "a person to find. Stumbrys & Erlacher 2017 — long-term mindfulness predicts the "
+            "ability to control lucid dreams, not just enter them. Lucidity becomes a practice, "
+            "not an event."
+        ),
+        "recommended_chakras": ["root", "sacral", "solar", "heart", "throat", "thirdeye", "crown"],
+    },
+]
+
+
+def apply_program_v2(apps, schema_editor):
+    WeeklyProgram = apps.get_model("practice", "WeeklyProgram")
+    for row in PROGRAM_V2:
+        WeeklyProgram.objects.update_or_create(
+            week_number=row["week_number"],
+            defaults={k: v for k, v in row.items() if k != "week_number"},
+        )
+
+
+def noop_reverse(apps, schema_editor):
+    """Reversal is a no-op — keep current rows in place."""
+    pass
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("practice", "0002_userprogress_userprogress_uniq_user_week"),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name="weeklyprogram",
+            name="primary_technique",
+            field=models.CharField(
+                choices=[
+                    ("FOUNDATION", "Foundation"),
+                    ("DILD", "DILD"),
+                    ("WILD", "WILD"),
+                    ("MILD", "MILD"),
+                    ("WBTB", "WBTB"),
+                    ("SSILD", "SSILD"),
+                ],
+                max_length=16,
+            ),
+        ),
+        migrations.RunPython(apply_program_v2, noop_reverse),
+    ]

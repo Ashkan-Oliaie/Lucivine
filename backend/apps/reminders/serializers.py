@@ -26,6 +26,7 @@ class ReminderSerializer(serializers.ModelSerializer):
             "next_fire_at",
             "last_fired_at",
             "created_at",
+            "practice_slug",
         )
         read_only_fields = ("id", "next_fire_at", "last_fired_at", "created_at")
 
