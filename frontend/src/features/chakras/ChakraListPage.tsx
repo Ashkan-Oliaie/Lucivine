@@ -11,8 +11,6 @@ export default function ChakraListPage() {
     queryKey: ["chakras"],
     queryFn: fetchChakras,
     staleTime: 60 * 60_000,
-
-
   });
   const { data: stats } = useQuery({
     queryKey: ["chakra-stats"],
@@ -43,6 +41,15 @@ export default function ChakraListPage() {
       </div>
 
       <ul className="relative z-[1]">
+        {/* Column of light — vertical chakra-spectrum line behind the glyph stack */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute top-3 bottom-3 left-[1.875rem] md:left-[2rem] w-px -translate-x-1/2 opacity-40"
+          style={{
+            background:
+              "linear-gradient(to bottom, #e74c3c 0%, #ff8c42 16%, #ffd93d 32%, #3ddc97 48%, #4ab5ff 64%, #7c5cff 80%, #d6b3ff 100%)",
+          }}
+        />
         {chakras?.map((c, i) => {
           const minutes = minutesByChakra.get(c.id) ?? 0;
           return (
@@ -54,31 +61,39 @@ export default function ChakraListPage() {
             >
               <Link
                 to={`/chakras/${c.id}`}
-                className="group flex items-start gap-3 py-2.5 md:py-3 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/40 rounded-md"
+                className="group relative flex items-start gap-3 py-2.5 md:py-3 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/40 rounded-md"
               >
                 <div className="relative shrink-0 mt-0.5">
-                  <motion.div
-                    className="absolute inset-0 rounded-full opacity-20 blur-md scale-105"
-                    style={{ background: c.color }}
-                    animate={{ opacity: [0.15, 0.28, 0.15] }}
-                    transition={{ duration: 4 + i * 0.2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <div
-                    className="relative w-10 h-10 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.05]"
+                  {/* Breathing tinted halo behind the glyph */}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-full blur-[14px] scale-[1.6] motion-safe:animate-[nebula-pulse_6s_ease-in-out_infinite]"
                     style={
                       {
-                        background: `radial-gradient(circle at 35% 30%, ${c.color}77, ${c.color}22 60%, transparent 82%)`,
+                        background: `radial-gradient(circle at 50% 50%, ${c.color}aa, ${c.color}33 50%, transparent 75%)`,
+                        animationDelay: `${i * 0.4}s`,
+                      } as CSSProperties
+                    }
+                  />
+                  <div
+                    className="relative w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-[1.06]"
+                    style={
+                      {
+                        background: `radial-gradient(circle at 35% 30%, ${c.color}55, ${c.color}10 60%, transparent 82%)`,
+                        boxShadow: `0 0 22px -4px ${c.color}80, inset 0 0 20px -10px ${c.color}aa`,
                       } as CSSProperties
                     }
                   >
                     <ChakraGlyph
                       id={c.id}
                       color="#f8f7fc"
-                      className="relative z-[1] w-[1.375rem] h-[1.375rem] md:w-6 md:h-6 drop-shadow-[0_0_6px_rgba(255,255,255,0.22)]"
+                      accent={c.color}
+                      animated
+                      className="relative z-[1] w-9 h-9 md:w-10 md:h-10 drop-shadow-[0_0_8px_rgba(255,255,255,0.28)]"
                     />
                   </div>
                 </div>
-                <div className="flex-1 min-w-0 pt-0.5">
+                <div className="flex-1 min-w-0 pt-1.5 md:pt-2">
                   <p className="text-[13px] md:text-sm font-semibold leading-snug text-ink-primary">
                     {c.english}
                   </p>

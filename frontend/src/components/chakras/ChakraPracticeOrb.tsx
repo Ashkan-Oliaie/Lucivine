@@ -162,6 +162,8 @@ export function ChakraPracticeOrb({
             <ChakraGlyph
               id={chakraId}
               color="#fdfcff"
+              accent={accent}
+              animated
               className="w-full h-full max-w-[4.75rem] drop-shadow-[0_0_20px_rgba(255,255,255,0.22)]"
             />
           </div>

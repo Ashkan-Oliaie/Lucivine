@@ -167,35 +167,56 @@ export default function ChakraSessionPage() {
         className="md:hidden relative z-[50] flex flex-wrap justify-center gap-2 pb-4 pt-1 px-1 shrink-0 pointer-events-auto"
         aria-label="Chakra centers"
       >
-        {chakras.map((ch) => (
-          <NavLink
-            key={ch.id}
-            to={`/chakras/${ch.id}`}
-            title={ch.english}
-            className={({ isActive }) =>
-              cn(
+        {chakras.map((ch) => {
+          const isActive = ch.id === id;
+          return (
+            <NavLink
+              key={ch.id}
+              to={`/chakras/${ch.id}`}
+              title={ch.english}
+              className={cn(
                 "relative z-[1] shrink-0 flex h-11 w-11 items-center justify-center rounded-full border transition-[border-color,box-shadow,background-color,transform] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-lavender/50 active:scale-[0.96]",
                 !isActive &&
                   "border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12]",
-              )
-            }
-            style={({ isActive }) =>
-              isActive
-                ? {
-                    borderColor: `${ch.color}dd`,
-                    background: `radial-gradient(circle at 35% 28%, ${ch.color}66, ${ch.color}22 52%, transparent 72%)`,
-                    boxShadow: `
-                      0 0 26px -6px ${ch.color},
-                      inset 0 0 28px -12px ${ch.color}77,
-                      inset 0 1px 0 rgba(255,255,255,0.12)
-                    `,
-                  }
-                : undefined
-            }
-          >
-            <ChakraGlyph id={ch.id} color="#fdfcff" className="h-6 w-6 drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]" />
-          </NavLink>
-        ))}
+              )}
+              style={
+                isActive
+                  ? {
+                      borderColor: `${ch.color}dd`,
+                      background: `radial-gradient(circle at 35% 28%, ${ch.color}88, ${ch.color}26 52%, transparent 72%)`,
+                      boxShadow: `
+                        0 0 36px -4px ${ch.color},
+                        0 0 14px -2px ${ch.color}aa,
+                        inset 0 0 28px -10px ${ch.color}aa,
+                        inset 0 1px 0 rgba(255,255,255,0.14)
+                      `,
+                    }
+                  : undefined
+              }
+            >
+              {isActive && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 rounded-full motion-safe:animate-[nebula-pulse_4s_ease-in-out_infinite]"
+                  style={{
+                    background: `radial-gradient(circle at 50% 50%, ${ch.color}66, transparent 70%)`,
+                    filter: "blur(8px)",
+                  }}
+                />
+              )}
+              <ChakraGlyph
+                id={ch.id}
+                color="#fdfcff"
+                accent={ch.color}
+                animated={isActive}
+                className={cn(
+                  "relative z-[1] drop-shadow-[0_0_10px_rgba(255,255,255,0.35)]",
+                  isActive ? "h-7 w-7" : "h-6 w-6",
+                )}
+              />
+            </NavLink>
+          );
+        })}
       </nav>
 
       {/* Compact vertical flow that fits within viewport height: kind toggle → orb (click to begin) → mantra + controls */}

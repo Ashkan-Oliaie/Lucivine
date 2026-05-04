@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { NAV } from "./nav";
+import { iconForNav } from "./navIcons";
 import { cn } from "@/lib/cn";
 
 type Props = {
@@ -128,11 +129,14 @@ function IslandNavLink({
             )}
             <span
               className={cn(
-                "relative z-[1] text-center text-lg leading-none shrink-0 w-7",
+                "relative z-[1] flex items-center justify-center shrink-0 w-7 leading-none",
                 active ? "text-accent-lavender" : "text-accent-lavender/95 group-hover:text-accent-lavender",
               )}
             >
-              {item.glyph}
+              {(() => {
+                const Ico = iconForNav(item.to);
+                return Ico ? <Ico size={18} /> : <span className="text-lg">{item.glyph}</span>;
+              })()}
             </span>
             <span
               className={cn(

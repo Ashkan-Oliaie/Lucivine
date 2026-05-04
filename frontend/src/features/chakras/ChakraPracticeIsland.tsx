@@ -103,43 +103,67 @@ export function ChakraPracticeIsland({ chakras, activeId, active, className }: P
           !expanded && "items-center md:items-stretch",
         )}
       >
-        {chakras.map((c) => (
-          <NavLink
-            key={c.id}
-            to={`/chakras/${c.id}`}
-            className={({ isActive }) =>
-              cn(
+        {chakras.map((c) => {
+          const isActive = c.id === activeId;
+          return (
+            <NavLink
+              key={c.id}
+              to={`/chakras/${c.id}`}
+              className={cn(
                 "flex items-center rounded-xl transition-colors shrink-0 w-full max-w-full",
                 expanded ? "gap-3 px-2.5 py-3 min-h-[3.25rem] justify-start" : "justify-center px-2 py-2.5 md:min-h-[3rem]",
                 isActive
                   ? "bg-accent-amethyst/26 ring-2 ring-accent-amethyst/45 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] border border-accent-amethyst/25"
                   : "border border-transparent hover:bg-white/[0.08]",
-              )
-            }
-            title={c.english}
-          >
-            <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/[0.08]"
-              style={{
-                background: `radial-gradient(circle at 35% 28%, ${c.color}66, ${c.color}18 62%, transparent 88%)`,
-                boxShadow:
-                  c.id === activeId ? `0 0 20px -6px ${c.color}` : undefined,
-              }}
+              )}
+              title={c.english}
             >
-              <ChakraGlyph id={c.id} color="#f5f3ff" className="h-7 w-7" />
-            </span>
-            {expanded && (
               <span
-                className={cn(
-                  "min-w-0 text-left text-[13px] font-medium leading-snug truncate",
-                  c.id === activeId ? "text-white font-semibold" : "text-white/[0.82]",
-                )}
+                className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border"
+                style={{
+                  borderColor: isActive ? `${c.color}cc` : "rgba(255,255,255,0.08)",
+                  background: `radial-gradient(circle at 35% 28%, ${c.color}${isActive ? "99" : "66"}, ${c.color}${isActive ? "26" : "18"} 62%, transparent 88%)`,
+                  boxShadow: isActive
+                    ? `0 0 32px -4px ${c.color}, 0 0 14px -2px ${c.color}aa, inset 0 0 22px -8px ${c.color}cc`
+                    : undefined,
+                }}
               >
-                {c.english}
+                {isActive && (
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 rounded-full motion-safe:animate-[nebula-pulse_4s_ease-in-out_infinite]"
+                    style={{
+                      background: `radial-gradient(circle at 50% 50%, ${c.color}66, transparent 70%)`,
+                      filter: "blur(8px)",
+                    }}
+                  />
+                )}
+                <ChakraGlyph
+                  id={c.id}
+                  color="#f5f3ff"
+                  accent={c.color}
+                  animated={isActive}
+                  className={cn(
+                    "relative z-[1]",
+                    isActive
+                      ? "h-8 w-8 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                      : "h-7 w-7",
+                  )}
+                />
               </span>
-            )}
-          </NavLink>
-        ))}
+              {expanded && (
+                <span
+                  className={cn(
+                    "min-w-0 text-left text-[13px] font-medium leading-snug truncate",
+                    isActive ? "text-white font-semibold" : "text-white/[0.82]",
+                  )}
+                >
+                  {c.english}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
     </aside>
   );

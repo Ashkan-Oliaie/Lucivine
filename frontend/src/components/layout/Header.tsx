@@ -5,6 +5,9 @@ import { useAuthStore } from "@/stores/auth";
 import { logout as apiLogout } from "@/api/auth";
 import { QuickJournal } from "@/components/quick/QuickJournal";
 import { QuickRC } from "@/components/quick/QuickRC";
+import { LogoMark, LucivineWordmark } from "@/components/brand/LogoMark";
+import { iconForNav } from "@/components/layout/navIcons";
+import { IconEye, IconMoon } from "@/components/icons";
 import { SECONDARY_NAV } from "./nav";
 import { cn } from "@/lib/cn";
 
@@ -48,20 +51,18 @@ export function Header({ onOpenDrawer }: Props) {
             <span className="block w-5 h-[1.5px] bg-current relative before:absolute before:content-[''] before:left-0 before:right-0 before:h-[1.5px] before:bg-current before:-top-1.5 after:absolute after:content-[''] after:left-0 after:right-0 after:h-[1.5px] after:bg-current after:top-1.5" />
           </button>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group focus-ring rounded-md">
-            <span className="relative w-8 h-8 md:w-9 md:h-9 flex items-center justify-center">
-              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-accent-amethyst via-accent-rose/70 to-accent-azure/60 blur-md opacity-70 group-hover:opacity-100 transition-opacity" />
-              <span className="absolute inset-[2px] rounded-full bg-void/80 border border-white/10" />
-              <span className="relative text-base md:text-lg text-ink-primary">
-                ✷
-              </span>
+          {/* Logo — interlocking-moons mark + Lucivine wordmark with breathing aurora halo */}
+          <Link
+            to="/"
+            className="flex items-center gap-3 group focus-ring rounded-md"
+          >
+            <span className="relative w-9 h-9 md:w-10 md:h-10 flex items-center justify-center text-ink-primary">
+              <span className="absolute inset-0 rounded-full bg-gradient-to-br from-accent-amethyst via-accent-rose/60 to-accent-azure/40 blur-md opacity-50 group-hover:opacity-90 transition-opacity animate-breathe" />
+              <LogoMark size={32} className="relative" />
             </span>
             <span className="hidden sm:flex flex-col leading-none">
-              <span className=" text-base md:text-lg text-ink-primary">
-                Lucivine
-              </span>
-              <span className=" text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-muted mt-1">
+              <LucivineWordmark className="text-base md:text-lg text-ink-primary font-medium" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ink-muted mt-1">
                 Dream practice
               </span>
             </span>
@@ -73,12 +74,12 @@ export function Header({ onOpenDrawer }: Props) {
           <QuickActionButton
             label="Reality check"
             onClick={() => setRcOpen(true)}
-            glyph="○"
+            icon={<IconEye size={16} />}
           />
           <QuickActionButton
             label="Inscribe dream"
             onClick={() => setJournalOpen(true)}
-            glyph="❍"
+            icon={<IconMoon size={16} />}
             primary
           />
 
@@ -117,26 +118,29 @@ export function Header({ onOpenDrawer }: Props) {
                       </p>
                     </div>
                     <nav className="py-1.5">
-                      {SECONDARY_NAV.map((item) => (
-                        <NavLink
-                          key={item.to}
-                          to={item.to}
-                          onClick={() => setMenuOpen(false)}
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center gap-3 px-4 py-2 text-sm transition-colors",
-                              isActive
-                                ? "text-ink-primary bg-white/5"
-                                : "text-ink-secondary hover:text-ink-primary hover:bg-white/5",
-                            )
-                          }
-                        >
-                          <span className="text-accent-lavender/80 w-4 text-center">
-                            {item.glyph}
-                          </span>
-                          <span>{item.label}</span>
-                        </NavLink>
-                      ))}
+                      {SECONDARY_NAV.map((item) => {
+                        const Ico = iconForNav(item.to);
+                        return (
+                          <NavLink
+                            key={item.to}
+                            to={item.to}
+                            onClick={() => setMenuOpen(false)}
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center gap-3 px-4 py-2 text-sm transition-colors",
+                                isActive
+                                  ? "text-ink-primary bg-white/5"
+                                  : "text-ink-secondary hover:text-ink-primary hover:bg-white/5",
+                              )
+                            }
+                          >
+                            <span className="text-accent-lavender/80 w-4 flex items-center justify-center">
+                              {Ico ? <Ico size={15} /> : <span>{item.glyph}</span>}
+                            </span>
+                            <span>{item.label}</span>
+                          </NavLink>
+                        );
+                      })}
                     </nav>
                     <button
                       type="button"
@@ -164,12 +168,12 @@ export function Header({ onOpenDrawer }: Props) {
 
 function QuickActionButton({
   label,
-  glyph,
+  icon,
   onClick,
   primary = false,
 }: {
   label: string;
-  glyph: string;
+  icon: React.ReactNode;
   onClick: () => void;
   primary?: boolean;
 }) {
@@ -185,8 +189,8 @@ function QuickActionButton({
       )}
       aria-label={label}
     >
-      <span className={cn("text-base md:text-lg", primary ? "" : "text-accent-lavender")}>
-        {glyph}
+      <span className={cn(primary ? "text-ink-primary" : "text-accent-lavender")}>
+        {icon}
       </span>
       <span className="hidden sm:inline text-xs font-semibold tracking-wide">
         {label}

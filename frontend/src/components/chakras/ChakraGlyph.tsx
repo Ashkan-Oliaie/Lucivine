@@ -4,135 +4,188 @@ import { cn } from "@/lib/cn";
 
 type Props = {
   id: ChakraId;
+  /** Stroke / line color (typically a near-white). */
   color: string;
+  /** Tint for petal halos and inner orb. Defaults to `color`. */
+  accent?: string;
+  /** Render slow rotating rings + nebula pulse on the halo. */
+  animated?: boolean;
+  /** Render the outer aurora halo behind the mandala (looks best at >=48px). */
+  bloom?: boolean;
   className?: string;
 };
 
-/** Hand-drawn geometric marks per energy center — SVG only, no external assets */
-export function ChakraGlyph({ id, color, className }: Props) {
+const PETALS: Record<ChakraId, number> = {
+  root: 4,
+  sacral: 6,
+  solar: 10,
+  heart: 12,
+  throat: 16,
+  thirdeye: 2,
+  crown: 24,
+};
+
+export function ChakraGlyph({
+  id,
+  color,
+  accent,
+  animated = false,
+  bloom = false,
+  className,
+}: Props) {
+  const tint = accent ?? color;
   const uid = useId().replace(/:/g, "");
-  const filt = `chakra-glow-${uid}`;
+  const haloId = `cg-halo-${uid}`;
+  const coreId = `cg-core-${uid}`;
+  const ringId = `cg-ring-${uid}`;
+
+  const petals = PETALS[id];
+  const arr = Array.from({ length: petals });
 
   return (
     <svg
-      viewBox="0 0 80 80"
-      className={cn("shrink-0", className)}
+      viewBox="0 0 100 100"
+      className={cn("block overflow-visible shrink-0", className)}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
     >
       <defs>
-        <filter id={filt} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="1.8" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+        <radialGradient id={haloId} cx="0.5" cy="0.5">
+          <stop offset="0" stopColor={tint} stopOpacity="0.95" />
+          <stop offset="0.45" stopColor={tint} stopOpacity="0.55" />
+          <stop offset="1" stopColor={tint} stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={coreId} cx="0.5" cy="0.5">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.95" />
+          <stop offset="0.4" stopColor={tint} stopOpacity="0.9" />
+          <stop offset="1" stopColor={tint} stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={ringId} x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stopColor={tint} stopOpacity="0.9" />
+          <stop offset="1" stopColor={tint} stopOpacity="0.3" />
+        </linearGradient>
       </defs>
-      {id === "root" && (
-        <g filter={`url(#${filt})`}>
-          <path
-            d="M40 58c-8-6-14-14-14-24s6-18 14-24c8 6 14 14 14 24s-6 18-14 24z"
-            stroke={color}
-            strokeWidth="1.6"
-            opacity="0.9"
+
+      {bloom && (
+        <>
+          <circle
+            cx="50"
+            cy="50"
+            r="56"
+            fill={`url(#${haloId})`}
+            opacity="0.6"
+            style={
+              animated
+                ? {
+                    animation: "nebula-pulse 6s ease-in-out infinite",
+                    transformOrigin: "50% 50%",
+                  }
+                : undefined
+            }
           />
-          <path
-            d="M40 48c-5-4-9-10-9-16s4-12 9-16c5 4 9 10 9 16s-4 12-9 16z"
-            stroke={color}
-            strokeWidth="1.2"
-            opacity="0.5"
-          />
-          <circle cx="40" cy="22" r="3" fill={color} opacity="0.85" />
-        </g>
+          <circle cx="50" cy="50" r="46" fill={`url(#${haloId})`} opacity="0.9" />
+        </>
       )}
-      {id === "sacral" && (
-        <g filter={`url(#${filt})`}>
-          <path
-            d="M24 42c0-12 8-20 18-22c10 2 18 12 18 24c0 8-5 14-12 18"
-            stroke={color}
-            strokeWidth="1.8"
-            strokeLinecap="round"
+
+      {/* Dotted outer ring */}
+      <g
+        style={
+          animated
+            ? {
+                animation: "ring-spin 24s linear infinite",
+                transformOrigin: "50% 50%",
+              }
+            : undefined
+        }
+      >
+        <circle
+          cx="50"
+          cy="50"
+          r="42"
+          fill="none"
+          stroke={tint}
+          strokeWidth="0.7"
+          strokeDasharray="0.8 3"
+          opacity="0.65"
+        />
+        {Array.from({ length: 8 }).map((_, i) => (
+          <circle
+            key={i}
+            cx={50 + Math.cos((i * Math.PI) / 4) * 42}
+            cy={50 + Math.sin((i * Math.PI) / 4) * 42}
+            r="0.95"
+            fill={tint}
             opacity="0.85"
           />
-          <ellipse cx="44" cy="36" rx="14" ry="10" stroke={color} strokeWidth="1.2" opacity="0.35" />
-        </g>
-      )}
-      {id === "solar" && (
-        <g filter={`url(#${filt})`}>
-          <circle cx="40" cy="40" r="10" stroke={color} strokeWidth="1.8" opacity="0.9" />
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => {
-            const r = (deg * Math.PI) / 180;
-            const x1 = 40 + Math.cos(r) * 14;
-            const y1 = 40 + Math.sin(r) * 14;
-            const x2 = 40 + Math.cos(r) * 22;
-            const y2 = 40 + Math.sin(r) * 22;
-            return (
-              <line key={deg} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth="1.4" opacity="0.7" />
-            );
-          })}
-        </g>
-      )}
-      {id === "heart" && (
-        <g filter={`url(#${filt})`}>
-          <path
-            d="M40 54c12-10 18-18 18-26a9 9 0 0 0-9-9c-4 0-7 2-9 5-2-3-5-5-9-5a9 9 0 0 0-9 9c0 8 6 16 18 26z"
-            stroke={color}
-            strokeWidth="1.6"
-            fill={color}
-            fillOpacity={0.12}
-          />
-          <path d="M40 46v-16M32 38h16" stroke={color} strokeWidth="1" opacity="0.35" strokeLinecap="round" />
-        </g>
-      )}
-      {id === "throat" && (
-        <g filter={`url(#${filt})`}>
-          <circle cx="40" cy="40" r="18" stroke={color} strokeWidth="1.4" opacity="0.45" />
-          <path
-            d="M22 34c6 4 12 4 18 0s12-4 18 0M22 46c6-4 12-4 18 0s12 4 18 0"
-            stroke={color}
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            opacity="0.85"
-          />
-          <circle cx="40" cy="40" r="5" stroke={color} strokeWidth="1.2" opacity="0.7" />
-        </g>
-      )}
-      {id === "thirdeye" && (
-        <g filter={`url(#${filt})`}>
-          <path d="M40 22 L58 54 H22 Z" stroke={color} strokeWidth="1.6" opacity="0.5" />
-          <ellipse cx="40" cy="38" rx="14" ry="10" stroke={color} strokeWidth="1.8" opacity="0.85" />
-          <circle cx="40" cy="38" r="5" fill={color} opacity="0.6" />
-          <circle cx="40" cy="38" r="2" fill="#0a0620" />
-        </g>
-      )}
-      {id === "crown" && (
-        <g filter={`url(#${filt})`}>
-          {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg, i) => {
-            const r = ((deg + 15) * Math.PI) / 180;
-            const inner = 12 + (i % 3);
-            const outer = 22 + (i % 4);
-            const x1 = 40 + Math.cos(r) * inner;
-            const y1 = 40 + Math.sin(r) * inner;
-            const x2 = 40 + Math.cos(r) * outer;
-            const y2 = 40 + Math.sin(r) * outer;
-            return (
-              <line
-                key={deg}
-                x1={x1}
-                y1={y1}
-                x2={x2}
-                y2={y2}
-                stroke={color}
-                strokeWidth="1.2"
-                opacity={0.35 + (i % 3) * 0.15}
-              />
-            );
-          })}
-          <circle cx="40" cy="40" r="6" stroke={color} strokeWidth="1.4" opacity="0.9" />
-        </g>
-      )}
+        ))}
+      </g>
+
+      {/* Counter-rotating dashed ring */}
+      <g
+        style={
+          animated
+            ? {
+                animation: "ring-spin 16s linear infinite reverse",
+                transformOrigin: "50% 50%",
+              }
+            : undefined
+        }
+      >
+        <circle
+          cx="50"
+          cy="50"
+          r="34"
+          fill="none"
+          stroke={`url(#${ringId})`}
+          strokeWidth="0.7"
+          strokeDasharray="1 3"
+          opacity="0.6"
+        />
+      </g>
+
+      {/* Petal mandala — count matches traditional chakra symbology */}
+      <g
+        style={
+          animated
+            ? {
+                animation: "ring-spin 80s linear infinite",
+                transformOrigin: "50% 50%",
+              }
+            : undefined
+        }
+      >
+        {arr.map((_, i) => {
+          const angle = (i * 360) / petals;
+          return (
+            <ellipse
+              key={i}
+              cx="50"
+              cy="22"
+              rx="4"
+              ry="14"
+              fill={tint}
+              fillOpacity="0.1"
+              stroke={color}
+              strokeWidth="1"
+              opacity="0.9"
+              transform={`rotate(${angle} 50 50)`}
+            />
+          );
+        })}
+      </g>
+
+      <circle
+        cx="50"
+        cy="50"
+        r="14"
+        fill="none"
+        stroke={color}
+        strokeWidth="1.1"
+        opacity="0.85"
+      />
+      <circle cx="50" cy="50" r="6" fill={`url(#${coreId})`} />
+      <circle cx="50" cy="50" r="2" fill="#ffffff" opacity="0.95" />
     </svg>
   );
 }

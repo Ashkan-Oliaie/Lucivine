@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Header } from "./Header";
 import { IslandSidebar } from "./IslandSidebar";
 import { PRIMARY_NAV, SECONDARY_NAV } from "./nav";
+import { iconForNav } from "./navIcons";
 import { cn } from "@/lib/cn";
 import { useSidebarRail } from "@/hooks/useSidebarRail";
 import { ChakraPracticeIslandRail } from "@/features/chakras/ChakraPracticeIslandRail";
@@ -91,8 +92,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                         );
                       }}
                     >
-                      <span className="text-accent-lavender/80 w-5 text-center text-lg">
-                        {item.glyph}
+                      <span className="text-accent-lavender/80 w-5 flex items-center justify-center">
+                        {(() => {
+                          const Ico = iconForNav(item.to);
+                          return Ico ? <Ico size={18} /> : <span className="text-lg">{item.glyph}</span>;
+                        })()}
                       </span>
                       <span>{item.label}</span>
                     </NavLink>
@@ -194,11 +198,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                       )}
                       <span
                         className={cn(
-                          "text-lg transition-colors",
+                          "flex items-center justify-center transition-colors",
                           tabActive ? "text-accent-lavender" : "",
                         )}
                       >
-                        {item.glyph}
+                        {(() => {
+                          const Ico = iconForNav(item.to);
+                          return Ico ? <Ico size={18} /> : <span className="text-lg">{item.glyph}</span>;
+                        })()}
                       </span>
                       <span className=" text-[10px] font-medium uppercase tracking-wide text-ink-muted">
                         {item.label}
