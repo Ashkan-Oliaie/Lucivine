@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.journal",
     "apps.meditation",
     "apps.spells",
+    "apps.quests",
     "apps.practice",
     "apps.reminders",
     "apps.analytics",

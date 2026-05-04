@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -16,7 +17,12 @@ import type { WeeklyProgram } from "@/api/types";
 import { cn } from "@/lib/cn";
 import { extractMessage } from "@/api/client";
 import { PathSummaryAside } from "./PathSummaryAside";
-import { metaFor, type PracticeMeta } from "./practiceMeta";
+import {
+  dedupePracticeSlugs,
+  isRealityCheckSlug,
+  metaFor,
+  type PracticeMeta,
+} from "./practiceMeta";
 import { PracticeAlarmButton } from "./PracticeAlarmButton";
 
 function todayISO(): string {
@@ -60,14 +66,21 @@ export default function ProgramPage() {
   });
 
   const completeMutation = useMutation({
-    mutationFn: ({ week, practice }: { week: number; practice: string }) =>
-      completeDay(week, { date: todayISO(), practices: [practice] }),
+    mutationFn: ({ week, practices }: { week: number; practices: string[] }) =>
+      completeDay(week, { date: todayISO(), practices }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["progress"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: (err) => setError(extractMessage(err)),
   });
+
+  /** Marking the displayed RC card complete completes every RC slug for that
+   * week (since multiple RC variants are collapsed into one card). */
+  function practicesToComplete(week: WeeklyProgram, slug: string): string[] {
+    if (!isRealityCheckSlug(slug)) return [slug];
+    return week.daily_practices.filter(isRealityCheckSlug);
+  }
 
   const progressByWeek = useMemo(
     () => new Map(progress?.map((p) => [p.week_number, p]) ?? []),
@@ -83,9 +96,19 @@ export default function ProgramPage() {
     ? progressByWeek.get(currentWeek.week_number)
     : undefined;
   const todaysCompleted = currentProgress?.daily_completion_log[todayISO()] ?? [];
-  const todaysTotal = currentWeek?.daily_practices.length ?? 0;
+  const dedupedDailyPractices = currentWeek
+    ? dedupePracticeSlugs(currentWeek.daily_practices)
+    : [];
+  const todaysTotal = dedupedDailyPractices.length;
+  const todaysDoneCount = dedupedDailyPractices.filter((p) =>
+    isRealityCheckSlug(p)
+      ? (currentWeek?.daily_practices ?? [])
+          .filter(isRealityCheckSlug)
+          .some((s) => todaysCompleted.includes(s))
+      : todaysCompleted.includes(p),
+  ).length;
   const todaysPct = todaysTotal
-    ? Math.round((todaysCompleted.length / todaysTotal) * 100)
+    ? Math.round((todaysDoneCount / todaysTotal) * 100)
     : 0;
 
   const totalWeeks = program?.length ?? 6;
@@ -131,7 +154,7 @@ export default function ProgramPage() {
                 Today
               </p>
               <p className="text-2xl md:text-3xl font-semibold text-ink-primary leading-none mt-1 tabular-nums">
-                {todaysCompleted.length}
+                {todaysDoneCount}
                 <span className="text-ink-muted font-normal">/{todaysTotal}</span>
               </p>
             </div>
@@ -156,9 +179,13 @@ export default function ProgramPage() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-            {currentWeek.daily_practices.map((p, idx) => {
+            {dedupePracticeSlugs(currentWeek.daily_practices).map((p, idx) => {
               const meta = metaFor(p);
-              const done = todaysCompleted.includes(p);
+              const done = isRealityCheckSlug(p)
+                ? currentWeek.daily_practices
+                    .filter(isRealityCheckSlug)
+                    .some((s) => todaysCompleted.includes(s))
+                : todaysCompleted.includes(p);
               return (
                 <PracticeCard
                   key={p}
@@ -173,7 +200,7 @@ export default function ProgramPage() {
                     !done &&
                     completeMutation.mutate({
                       week: currentWeek.week_number,
-                      practice: p,
+                      practices: practicesToComplete(currentWeek, p),
                     })
                   }
                 />
@@ -260,7 +287,7 @@ export default function ProgramPage() {
               onPracticeComplete={(practice) =>
                 completeMutation.mutate({
                   week: nextWeek.week_number,
-                  practice,
+                  practices: practicesToComplete(nextWeek, practice),
                 })
               }
             />
@@ -280,7 +307,11 @@ export default function ProgramPage() {
         active={activePractice}
         onClose={() => setActivePractice(null)}
         onComplete={(week, practice) => {
-          completeMutation.mutate({ week, practice });
+          const weekData = program?.find((w) => w.week_number === week);
+          const practices = weekData
+            ? practicesToComplete(weekData, practice)
+            : [practice];
+          completeMutation.mutate({ week, practices });
           setActivePractice(null);
         }}
         progressByWeek={progressByWeek}
@@ -527,9 +558,13 @@ function WeekRow({
                 <div>
                   <p className="ritual-eyebrow mb-3">Daily practices</p>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {week.daily_practices.map((p) => {
+                    {dedupePracticeSlugs(week.daily_practices).map((p) => {
                       const meta = metaFor(p);
-                      const done = completedToday.includes(p);
+                      const done = isRealityCheckSlug(p)
+                        ? week.daily_practices
+                            .filter(isRealityCheckSlug)
+                            .some((s) => completedToday.includes(s))
+                        : completedToday.includes(p);
                       return (
                         <li key={p} className="flex items-center gap-2">
                           <button
@@ -615,11 +650,13 @@ function PracticeDialog({
   }
   const meta = metaFor(active.practice);
   const today = progressByWeek.get(active.week)?.daily_completion_log[todayISO()] ?? [];
-  const done = today.includes(active.practice);
+  const done = isRealityCheckSlug(active.practice)
+    ? today.some(isRealityCheckSlug)
+    : today.includes(active.practice);
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
         <motion.div
           key="overlay"
           initial={{ opacity: 0 }}
@@ -627,7 +664,7 @@ function PracticeDialog({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           onClick={onClose}
-          className="absolute inset-0 bg-void/70 backdrop-blur-md"
+          className="absolute inset-0 backdrop-blur-xl bg-void/20"
         />
         <motion.div
           key="dialog"
@@ -695,6 +732,7 @@ function PracticeDialog({
         </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

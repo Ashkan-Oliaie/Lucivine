@@ -33,10 +33,12 @@ export const PRACTICE_META: Record<string, PracticeMeta> = {
     label: "Sensory grounding",
     glyph: "✦",
     description:
-      "5-4-3-2-1 — name five sights, four sounds, three textures, two smells, one taste. Trains the meta-awareness muscle that recognises *this is happening now* — the same muscle that wakes you inside a dream.",
+      "Pause for a minute and drop into your senses. Listen for the sounds around you — the hum of a room, a far-off voice, your own breath. Or feel a texture under your fingers — the weave of your sleeve, the cool edge of a desk. Or simply reflect on this moment: where you are, what you see, the touch of air on your skin. The point is to fully arrive in *now*. That same noticing muscle is what wakes you up inside a dream.",
     steps: [
-      "Pause wherever you are.",
-      "Move slowly through the senses without naming what you 'should' notice.",
+      "Pause wherever you are and stop moving for a moment.",
+      "Pick one sense — sound, touch, or sight — and rest your attention there for ~30 seconds.",
+      "Name what you notice silently: three sounds, or three textures, or three things you see.",
+      "Ask: am I really here, awake? Take the question seriously.",
       "Repeat 2–3 times across the day.",
     ],
     duration: "1–2 min",
@@ -373,7 +375,31 @@ export const PRACTICE_META: Record<string, PracticeMeta> = {
   },
 };
 
+/** A single, method-agnostic Reality Check entry. We collapse all RC variants
+ * (nose-pinch, finger-count, legacy rc_every_2h) into one display so the user
+ * picks whichever method resonates — no need to specify which. */
+export const REALITY_CHECK_META: PracticeMeta = {
+  label: "Reality check",
+  glyph: "○",
+  description:
+    "A small, deliberate question to waking life: am I dreaming? Pick whichever check feels right — pinch your nose and try to breathe through it, count your fingers twice, read a line of text and look back, push a finger through your palm. The method matters less than the *habit*. Repeated often enough in waking life, the question slips into a dream — and that's where lucidity begins.",
+  steps: [
+    "Pause whatever you're doing and ask, sincerely: am I dreaming?",
+    "Run a check you trust — nose pinch, finger count, re-read text, palm push.",
+    "Look around for one detail that doesn't fit: writing that shifts, a face that won't hold, a room slightly off.",
+    "Take the answer seriously even when you 'know' you're awake. The seriousness is what carries over.",
+  ],
+  duration: "20–30 sec",
+  defaultReminderTime: "12:00",
+};
+
+/** True for any reality-check practice slug, regardless of method. */
+export function isRealityCheckSlug(slug: string): boolean {
+  return slug.endsWith("_rc") || slug === "rc_every_2h";
+}
+
 export function metaFor(key: string): PracticeMeta {
+  if (isRealityCheckSlug(key)) return REALITY_CHECK_META;
   return (
     PRACTICE_META[key] ?? {
       label: key.replace(/_/g, " "),
@@ -383,4 +409,19 @@ export function metaFor(key: string): PracticeMeta {
       duration: "",
     }
   );
+}
+
+/** Collapse a list of practice slugs so multiple RC variants surface as a
+ * single Reality Check entry. The first RC slug seen represents the group. */
+export function dedupePracticeSlugs(slugs: string[]): string[] {
+  const out: string[] = [];
+  let rcSeen = false;
+  for (const s of slugs) {
+    if (isRealityCheckSlug(s)) {
+      if (rcSeen) continue;
+      rcSeen = true;
+    }
+    out.push(s);
+  }
+  return out;
 }

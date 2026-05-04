@@ -67,7 +67,7 @@ export const IconChakras = (p: IconProps) => (
   </Icon>
 );
 
-export const IconSpells = (p: IconProps) => (
+export const IconQuests = (p: IconProps) => (
   <Icon {...p}>
     <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z" />
     <circle cx="18.5" cy="17.5" r="1.2" fill="currentColor" opacity="0.45" />

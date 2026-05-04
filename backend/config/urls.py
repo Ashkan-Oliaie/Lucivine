@@ -20,7 +20,7 @@ urlpatterns = [
     path("api/reality-checks/", include("apps.reality_checks.urls")),
     path("api/journal/", include("apps.journal.urls")),
     path("api/meditation/", include("apps.meditation.urls")),
-    path("api/spells/", include("apps.spells.urls")),
+    path("api/quests/", include("apps.quests.urls")),
     path("api/practice/", include("apps.practice.urls")),
     path("api/reminders/", include("apps.reminders.urls")),
     path("api/push/", include("apps.reminders.push_urls")),

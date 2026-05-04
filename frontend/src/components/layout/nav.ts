@@ -11,7 +11,7 @@ export const NAV: NavItem[] = [
   { to: "/journal", label: "Journal", glyph: "❍", primary: true },
   { to: "/dashboard", label: "Insights", glyph: "✷", primary: true },
   { to: "/chakras/root", label: "Chakras", glyph: "✦", primary: true },
-  { to: "/spells", label: "Spells", glyph: "☾", primary: true },
+  { to: "/quests", label: "Quests", glyph: "☾", primary: true },
   { to: "/reality", label: "Reality", glyph: "○", primary: false },
   { to: "/transition", label: "Transition", glyph: "≈", primary: false },
   { to: "/analytics", label: "Analytics", glyph: "▦", primary: false },

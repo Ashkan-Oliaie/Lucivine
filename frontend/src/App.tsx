@@ -14,7 +14,7 @@ import JournalListPage from "@/features/journal/JournalListPage";
 import JournalEditorPage from "@/features/journal/JournalEditorPage";
 import ChakraListPage from "@/features/chakras/ChakraListPage";
 import ChakraSessionPage from "@/features/chakras/ChakraSessionPage";
-import SpellsPage from "@/features/spells/SpellsPage";
+import QuestsPage from "@/features/quests/QuestsPage";
 import RemindersPage from "@/features/reminders/RemindersPage";
 import AnalyticsPage from "@/features/analytics/AnalyticsPage";
 import TransitionPage from "@/features/transition/TransitionPage";
@@ -115,7 +115,8 @@ export default function App() {
           <Route path="/chakras/browse" element={<Protected><ChakraListPage /></Protected>} />
           <Route path="/chakras/:id" element={<Protected><ChakraSessionPage /></Protected>} />
           <Route path="/chakras" element={<Navigate to="/chakras/root" replace />} />
-          <Route path="/spells" element={<Protected><SpellsPage /></Protected>} />
+          <Route path="/quests" element={<Protected><QuestsPage /></Protected>} />
+          <Route path="/spells" element={<Navigate to="/quests" replace />} />
           <Route path="/reminders" element={<Protected><RemindersPage /></Protected>} />
           <Route path="/analytics" element={<Protected><AnalyticsPage /></Protected>} />
           <Route path="/transition" element={<Protected><TransitionPage /></Protected>} />

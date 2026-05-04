@@ -30,6 +30,22 @@ const config: Config = {
           thirdeye: "#7c5cff",
           crown: "#d6b3ff",
         },
+        // Quest palette — distinct sage/emerald accent for the right-side quest
+        // section. Deliberately separated from the app's amethyst/rose so the
+        // quest UI reads as its own surface even when overlaid on shared chrome.
+        quest: {
+          base: "#0a1f1a",
+          surface: "#0f2a23",
+          surfaceStrong: "#143a30",
+          border: "#1f5a48",
+          accent: "#3ddc97",
+          accentSoft: "#7ef0c0",
+          accentDeep: "#1b9b6a",
+          gold: "#f5c97d",
+          ink: "#e6f7ee",
+          inkSoft: "#a9d6c2",
+          inkMuted: "#6c9a87",
+        },
       },
       fontFamily: {
         /** Inter everywhere — use font-sans + weight/size for hierarchy */
@@ -66,6 +82,8 @@ const config: Config = {
         glow: "0 0 60px -15px rgba(124, 92, 255, 0.55)",
         "glow-soft": "0 10px 40px -20px rgba(124, 92, 255, 0.5)",
         ring: "0 0 0 1px rgba(184, 168, 255, 0.18)",
+        "quest-glow": "0 0 60px -20px rgba(61, 220, 151, 0.55)",
+        "quest-glow-soft": "0 10px 40px -22px rgba(61, 220, 151, 0.5)",
       },
       backgroundImage: {
         "aurora-1":

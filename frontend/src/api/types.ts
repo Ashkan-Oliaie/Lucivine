@@ -161,48 +161,70 @@ export type JournalStats = {
   calendar: Array<{ date: string; count: number; lucid: number }>;
 };
 
-// Spells
-export type SpellCategory =
+// Quests (formerly "Spells")
+export type QuestCategory =
   | "stabilization"
   | "manifestation"
   | "transformation"
   | "environmental";
 
-export type Spell = {
+export type Quest = {
   id: string;
   slug: string;
   name: string;
   tier: number;
   description: string;
   incantation: string;
-  unlock_threshold: number;
-  category: SpellCategory;
+  category: QuestCategory;
+  /** Program weeks where this quest appears. Empty list = every week. */
+  weeks: number[];
+  min_lucid_count: number;
+  min_week: number;
+  /** Slugs of quests that must be completed before this one unlocks. */
+  prerequisites: string[];
+  is_active: boolean;
+  /** Conditions met (lucid count + min_week + prereqs). */
   unlocked: boolean;
-  cast_count: number;
+  attempt_count: number;
+  /** True when the user is tracking this quest in their rail. */
+  is_tracked: boolean;
+  is_completed: boolean;
+  /** 0–100 self-reported progress. */
+  progress: number;
 };
 
-export type SpellList = {
+export type QuestList = {
   lucid_count: number;
-  results: Spell[];
+  current_week: number;
+  results: Quest[];
 };
 
-export type SpellCast = {
+export type QuestAttempt = {
   id: string;
-  spell: string;
+  quest: string;
   dream_entry: string | null;
   success_rating: number;
   notes: string;
-  cast_at: string;
+  attempted_at: string;
 };
 
-export type GrimoireEntry = {
-  spell: Spell;
-  casts: Array<{
+export type UserQuest = {
+  id: string;
+  quest: string;
+  is_tracked: boolean;
+  started_at: string;
+  completed_at: string | null;
+  progress: number;
+};
+
+export type QuestLogEntry = {
+  quest: Quest;
+  attempts: Array<{
     id: string;
     dream_entry: string | null;
     success_rating: number;
     notes: string;
-    cast_at: string;
+    attempted_at: string;
   }>;
   avg_success: number | null;
 };

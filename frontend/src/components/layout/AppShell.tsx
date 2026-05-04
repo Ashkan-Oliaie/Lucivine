@@ -7,7 +7,10 @@ import { PRIMARY_NAV, SECONDARY_NAV } from "./nav";
 import { iconForNav } from "./navIcons";
 import { cn } from "@/lib/cn";
 import { useSidebarRail } from "@/hooks/useSidebarRail";
+import { useQuestRail } from "@/hooks/useQuestRail";
 import { ChakraPracticeIslandRail } from "@/features/chakras/ChakraPracticeIslandRail";
+import { QuestRail } from "@/features/quests/QuestRail";
+import { QuestPathStrip } from "@/features/quests/QuestPathStrip";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -16,6 +19,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const chakraSessionPath = location.pathname.startsWith("/chakras");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { expanded: sidebarExpanded, toggle: toggleSidebar } = useSidebarRail(true);
+  const { expanded: questExpanded, toggle: toggleQuest } = useQuestRail(true);
 
   return (
     <div
@@ -123,6 +127,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 : "mx-auto max-w-6xl px-2 sm:px-3 md:px-5 lg:px-6 overflow-hidden",
             )}
           >
+            {!chakraSessionPath && <QuestPathStrip />}
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -151,6 +156,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             </AnimatePresence>
           </div>
         </main>
+
+        {/* Right-side quest rail (lg+ only). Tablets see QuestPathStrip on the
+            page itself; phones reach quests via the bottom-nav tab. */}
+        <QuestRail expanded={questExpanded} onToggle={toggleQuest} />
       </div>
 
       {/* Mobile bottom tab bar */}

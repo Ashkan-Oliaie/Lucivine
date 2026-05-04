@@ -26,7 +26,7 @@ help:
 	@echo "  make manage cmd=...  Run any manage.py command, e.g. make manage cmd='createsuperuser'"
 	@echo "  make migrate         Apply migrations"
 	@echo "  make makemigrations  Create migrations"
-	@echo "  make seed            Load fixtures (chakras, spells, weekly program)"
+	@echo "  make seed            Load fixtures (chakras, quests, weekly program)"
 	@echo "  make test            Run pytest"
 	@echo "  make lint            Run ruff + eslint"
 	@echo ""
@@ -88,7 +88,7 @@ makemigrations:
 	docker compose $(COMPOSE_DEV) exec backend python manage.py makemigrations
 
 seed:
-	docker compose $(COMPOSE_DEV) exec backend python manage.py loaddata spells weekly_program
+	docker compose $(COMPOSE_DEV) exec backend python manage.py loaddata quests weekly_program
 
 test:
 	docker compose $(COMPOSE_DEV) exec backend pytest

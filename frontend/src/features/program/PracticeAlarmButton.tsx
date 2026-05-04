@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createReminder,
@@ -36,12 +37,22 @@ function kindForPractice(slug: string): ReminderKind {
   return "custom";
 }
 
+/** Practices where a daily alarm doesn't make sense — they trigger off the
+ * act of waking, not a fixed time of day. */
+const ALARM_DISABLED_SLUGS = new Set(["journal_entry", "morning_recall"]);
+
 export function PracticeAlarmButton({ practiceSlug, meta, className }: Props) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [time, setTime] = useState(meta.defaultReminderTime ?? "07:00");
   const [error, setError] = useState<string | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(
+    null,
+  );
+
+  if (ALARM_DISABLED_SLUGS.has(practiceSlug)) return null;
 
   const { data, isPending } = useQuery({
     queryKey: ["reminders", "by-practice", practiceSlug],
@@ -86,15 +97,41 @@ export function PracticeAlarmButton({ practiceSlug, meta, className }: Props) {
     if (existing?.time_of_day) setTime(existing.time_of_day.slice(0, 5));
   }, [existing?.id, existing?.time_of_day]);
 
-  // Click-away to dismiss
+  // Click-away to dismiss (popover is portalled, so include the trigger too)
   useEffect(() => {
     if (!open) return;
     function onDocClick(e: MouseEvent) {
-      if (!popoverRef.current) return;
-      if (!popoverRef.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      if (popoverRef.current?.contains(t)) return;
+      if (triggerRef.current?.contains(t)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  // Anchor the portalled popover under the trigger; recompute on scroll/resize.
+  useLayoutEffect(() => {
+    if (!open) return;
+    function place() {
+      const btn = triggerRef.current;
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      const popWidth = 256; // matches w-64
+      const margin = 8;
+      const left = Math.min(
+        Math.max(margin, r.right - popWidth),
+        window.innerWidth - popWidth - margin,
+      );
+      setPopoverPos({ top: r.bottom + margin, left });
+    }
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
   }, [open]);
 
   function save() {
@@ -124,6 +161,7 @@ export function PracticeAlarmButton({ practiceSlug, meta, className }: Props) {
   return (
     <div className={cn("relative", className)}>
       <button
+        ref={triggerRef}
         type="button"
         onClick={(e) => {
           e.stopPropagation();
@@ -153,11 +191,12 @@ export function PracticeAlarmButton({ practiceSlug, meta, className }: Props) {
         </span>
       )}
 
-      {open && (
+      {open && popoverPos && createPortal(
         <div
           ref={popoverRef}
           onClick={(e) => e.stopPropagation()}
-          className="absolute right-0 top-full mt-2 z-50 w-64 glass-strong rounded-xl shadow-glow p-4"
+          style={{ position: "fixed", top: popoverPos.top, left: popoverPos.left }}
+          className="z-[60] w-64 glass-strong rounded-xl shadow-glow p-4"
         >
           <p className="ritual-eyebrow mb-2">Daily nudge</p>
           <p className="text-[13px] text-ink-secondary leading-snug mb-3">
@@ -209,7 +248,8 @@ export function PracticeAlarmButton({ practiceSlug, meta, className }: Props) {
           <p className="mt-3 text-[10px] text-ink-muted leading-relaxed">
             Push must be allowed for this browser. Manage in Settings.
           </p>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
